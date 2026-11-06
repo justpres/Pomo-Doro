@@ -21,25 +21,10 @@ export function CircadianAnalysisCard() {
     return (
         <div className="card p-5 sm:p-6 space-y-4 border border-stone-200/80 bg-white rounded-3xl shadow-xs">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
                 <h3 className="font-bold text-sm sm:text-base text-stone-900">
                     24-Hour Energy &amp; Focus Curve
                 </h3>
-
-                {bpt && (
-                    <div className="flex items-center gap-2 self-start sm:self-auto bg-stone-50 border border-stone-200/80 px-3 py-1.5 rounded-2xl">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        <div>
-                            <span className="text-[10px] uppercase tracking-wider font-semibold text-stone-400 block leading-tight">
-                                Prime Focus Window
-                            </span>
-                            <span className="text-xs font-semibold text-stone-800 font-mono">
-                                {String(bpt.startHour).padStart(2, '0')}:00 – {String(bpt.endHour).padStart(2, '0')}:00
-                                {bpt.averageQuality > 0 && ` (${bpt.averageQuality}★)`}
-                            </span>
-                        </div>
-                    </div>
-                )}
             </div>
 
             {/* 24-Hour Chart */}
