@@ -1,0 +1,34 @@
+# PomodoFocus — Minimalist Pomodoro Timer with Ambient Lofi Soundscapes
+
+> PomodoFocus is a free, modern, privacy-first Pomodoro timer and productivity application designed with Scandinavian and Japanese Zen minimalism. It combines deep-work time management with built-in 24/7 ambient lofi and jazz radio streams integrated into an organic Dynamic Island interface.
+
+## Quick Facts
+- **Website**: https://pomodofocus.vercel.app
+- **Category**: Productivity, Deep Work, Study Timer, Time Tracking
+- **Pricing**: 100% Free (No ads, no subscriptions, no accounts)
+- **Privacy**: Local-first (All tasks, settings, and session stats stored in browser localStorage; zero user tracking)
+- **Platform**: Web (Desktop, Mobile, Tablet; PWA installable; Picture-in-Picture supported)
+
+## Key Features
+- **Integrated Ambient Soundscapes**: 4 live streaming radio stations (Lofi 24/7, Chillhop Radio, Smooth Chill, Coffee Shop Vibes) playable directly within a single-path fluid droplet Dynamic Island.
+- **Dynamic Island Liquid Meniscus**: Seamless Apple-inspired Dynamic Island player with two-line typography, rotating vinyl disc badge, and one-tap controls.
+- **Customizable Intervals**: Default 25m Focus / 5m Short Break / 15m Long Break with customizable intervals.
+- **Focus Presets**: Pre-configured workflows including Classic Pomodoro, Extended Deep Work (50m/10m), Quick Sprints (15m/3m), and Ultraworking (90m/20m).
+- **Task Management**: Built-in task list with Pomodoro count estimates, completion tracking, and active session assignment.
+- **Session Ratings & Analytics**: Post-session productivity ratings (1-5), daily completion heatmaps, and weekly focus metrics.
+- **Picture-in-Picture (PiP)**: Floating mini timer window via Document Picture-in-Picture API for seamless multi-window workflow.
+- **Audio Ducking**: Automatically attenuates background soundscapes when completion chimes play.
+
+## Methodology: The Pomodoro Technique
+1. Choose a single task to work on.
+2. Start a 25-minute Pomodoro focus session.
+3. Work with uninterrupted attention until the timer sounds.
+4. Take a restorative 5-minute short break.
+5. Every 4 completed Pomodoros, take an extended 15-to-30 minute long break to maintain cognitive stamina.
+
+## Keyboard Shortcuts
+- `Space`: Start / Pause timer
+- `R`: Reset current interval
+- `S`: Skip to next interval (Focus / Short Break / Long Break)
+- `M`: Toggle ambient audio playback
+- `F`: Toggle full screen focus mode

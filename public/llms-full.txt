@@ -1,0 +1,40 @@
+# PomodoFocus — Full Knowledge Base & Specifications
+
+## Overview & Philosophy
+PomodoFocus (hosted at https://pomodofocus.vercel.app) is an aesthetic, distraction-free Pomodoro timer designed for developers, students, researchers, designers, and remote professionals. The application marries Scandinavian design principles—uncluttered layouts, natural stone color palettes (#FAF9F6), and crisp typography—with the calming atmosphere of live lofi radio to foster uninterrupted flow state.
+
+## Core Architecture & Technical Specifications
+- **Framework**: Next.js 16 (App Router with Turbopack) & React 19
+- **State Management**: Zustand with persistent local storage middleware
+- **Styling**: Tailwind CSS with custom CSS variables (--primary: #FF6363, --background: #FAF9F6)
+- **Audio Engine**: Native HTML5 Audio element with error-resilient stream buffering, automatic audio ducking on session alarm rings, and background playback resilience
+- **Vector Graphics**: Single-path continuous SVG silhouette with C1 tangent-matched Bezier fillets for the liquid meniscus Dynamic Island droplet
+- **Testing**: Vitest with unit test coverage across date utilities, timer logic, stats aggregation, task management, and audio store actions
+
+## Built-In Radio Stations (Soundscapes)
+1. **Lofi 24/7** (`lofi-radio`): Continuous relaxing lofi beats to study, code, and relax to. Stream: `https://play.streamafrica.net/lofiradio`
+2. **Chillhop Radio** (`chillhop`): Jazzy instrumental hip hop curated for rhythm and focus. Stream: `https://streams.fluxfm.de/Chillhop/mp3-128/streams.fluxfm.de/`
+3. **Smooth Chill** (`smooth-chill`): Melodic smooth jazz and ambient electronic soundscapes. Stream: `https://media-ssl.musicradio.com/SmoothChill`
+4. **Coffee Shop Vibes** (`coffee-shop`): Cafe ambience blended with warm acoustic jazz. Stream: `https://ais-sa8.cdnstream1.com/3629_128.mp3`
+
+## Frequently Asked Questions (FAQ)
+
+### What makes PomodoFocus different from other Pomodoro timers?
+Unlike conventional timer utilities that show intrusive advertisements or separate audio players, PomodoFocus seamlessly houses a 24/7 lofi streaming deck directly inside a dripping Dynamic Island vector navigation bar. It includes task estimation, session reflection ratings, interactive productivity heatmaps, and Document Picture-in-Picture without requiring a user account or paid tier.
+
+### Is my data secure and private?
+Yes. PomodoFocus operates on a local-first philosophy. All your tasks, custom duration presets, session ratings, and statistics are stored exclusively in your browser's localStorage. Zero cookies, zero third-party trackers, and zero backend databases are used.
+
+### How do I use the Pomodoro Technique effectively?
+1. Pick one task from your task list and estimate how many 25-minute Pomodoro sessions it will take.
+2. Hit Space or click the start button. Let the ambient lofi station gently mask background distractions.
+3. Commit to single-tasking for 25 minutes. If an unrelated thought arises, note it down on your task list and immediately return to your work.
+4. When the bell chimes, step away from your workstation for 5 minutes.
+5. After 4 cycles (100 minutes of deep focus), enjoy a longer 15-30 minute restorative break.
+
+### Does PomodoFocus support Picture-in-Picture?
+Yes. On Chromium-based browsers, clicking the Picture-in-Picture icon launches an always-on-top mini floating window displaying the countdown timer, active task, and pause/resume controls while you work across full-screen IDEs or documents.
+
+## Contact & Feedback
+- Website: https://pomodofocus.vercel.app
+- Source Code: https://github.com/justpres/Pomo-Doro

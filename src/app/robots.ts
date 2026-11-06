@@ -8,10 +8,25 @@ const siteUrl =
 
 export default function robots(): MetadataRoute.Robots {
     return {
-        rules: {
-            userAgent: '*',
-            allow: '/',
-        },
+        rules: [
+            {
+                userAgent: '*',
+                allow: '/',
+            },
+            // Explicitly allow AI Answer Engines (GEO & AEO optimization)
+            {
+                userAgent: [
+                    'GPTBot',
+                    'ChatGPT-User',
+                    'PerplexityBot',
+                    'ClaudeBot',
+                    'Google-Extended',
+                    'Applebot-Extended',
+                    'CCBot',
+                ],
+                allow: ['/', '/llms.txt', '/llms-full.txt'],
+            },
+        ],
         sitemap: `${siteUrl}/sitemap.xml`,
     };
 }
