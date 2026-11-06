@@ -1,0 +1,281 @@
+@import "tailwindcss";
+
+/* Hide scrollbar but allow scrolling */
+html {
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE/Edge */
+}
+
+html::-webkit-scrollbar {
+  display: none;
+  /* Chrome, Safari, Opera */
+}
+
+/* ================================
+   POMODORO TIMER - DESIGN SYSTEM
+   Tomato Pink Color Palette
+   ================================ */
+
+:root {
+  /* Primary Colors - Tomato Pink */
+  --primary: #FF6B6B;
+  --primary-light: #FF8787;
+  --primary-lighter: #FFA5A5;
+  --primary-dark: #E85555;
+
+  /* Background */
+  --background: #FFF5F5;
+  --background-card: #FFFFFF;
+
+  /* Text */
+  --text-dark: #2C2C2C;
+  --text-light: #6B6B6B;
+  --text-muted: #9B9B9B;
+
+  /* Status Colors */
+  --success: #51CF66;
+  --warning: #FFD43B;
+
+  /* Focus Mode Colors */
+  --focus-bg: #FFF5F5;
+  --break-bg: #F0FFF4;
+  --long-break-bg: #E8F4FF;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--text-dark);
+  --color-primary: var(--primary);
+  --color-primary-light: var(--primary-light);
+  --color-primary-lighter: var(--primary-lighter);
+  --color-primary-dark: var(--primary-dark);
+  --font-sans: var(--font-space-grotesk);
+  --font-mono: var(--font-jetbrains-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--text-dark);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  min-height: 100vh;
+}
+
+/* Timer Display Styles */
+.timer-display {
+  font-family: var(--font-mono), monospace;
+  font-size: clamp(3rem, 10vw, 5rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--text-dark);
+}
+
+@keyframes waveOscillate {
+  0% {
+    transform: translateX(-15%);
+  }
+
+  100% {
+    transform: translateX(15%);
+  }
+}
+
+/* Button Base Styles */
+.btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 500;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+  transform: scale(1.02);
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text-dark);
+  border: 2px solid var(--primary-lighter);
+}
+
+.btn-secondary:hover {
+  background: var(--primary-lighter);
+  transform: scale(1.02);
+}
+
+.btn-secondary:active {
+  transform: scale(0.98);
+}
+
+/* Mode Indicator */
+.mode-focus {
+  background: var(--focus-bg);
+}
+
+.mode-break {
+  background: var(--break-bg);
+}
+
+.mode-long-break {
+  background: var(--long-break-bg);
+}
+
+/* Progress Ring */
+.progress-ring {
+  transform: rotate(-90deg);
+}
+
+.progress-ring__circle {
+  transition: stroke-dashoffset 0.5s ease;
+}
+
+/* Card Styles */
+.card {
+  background: var(--background-card);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(255, 107, 107, 0.1);
+}
+
+/* Animations */
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(255, 107, 107, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 0 40px rgba(255, 107, 107, 0.5);
+  }
+}
+
+.timer-active {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Force tomato-pink accent on all inputs */
+input[type="range"] {
+  accent-color: #FF6B6B !important;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  height: 8px;
+}
+
+/* Slider track - Chrome/Safari/Edge */
+input[type="range"]::-webkit-slider-runnable-track {
+  background: #FFA5A5;
+  height: 8px;
+  border-radius: 4px;
+}
+
+/* Slider track when focused - Chrome/Safari/Edge */
+input[type="range"]:focus::-webkit-slider-runnable-track {
+  background: #FF8787;
+}
+
+/* Slider thumb - Chrome/Safari/Edge */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  background: #FF6B6B;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  margin-top: -6px;
+  box-shadow: 0 2px 4px rgba(255, 107, 107, 0.3);
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  background: #E85555;
+}
+
+/* Slider track - Firefox */
+input[type="range"]::-moz-range-track {
+  background: #FFA5A5;
+  height: 8px;
+  border-radius: 4px;
+}
+
+input[type="range"]:focus::-moz-range-track {
+  background: #FF8787;
+}
+
+/* Slider thumb - Firefox */
+input[type="range"]::-moz-range-thumb {
+  background: #FF6B6B;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  border: none;
+  box-shadow: 0 2px 4px rgba(255, 107, 107, 0.3);
+}
+
+input[type="range"]::-moz-range-thumb:hover {
+  background: #E85555;
+}
+
+input[type="number"],
+input[type="text"] {
+  border-color: #FFA5A5;
+}
+
+input[type="number"]:focus,
+input[type="text"]:focus {
+  border-color: #FF6B6B;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.2);
+}
+
+/* Override all browser default focus outlines to tomato pink */
+*:focus {
+  outline-color: #FF6B6B;
+}
+
+*:focus-visible {
+  outline: 2px solid #FF6B6B;
+  outline-offset: 2px;
+}
+
+button:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.3);
+}
+
+/* Remove default tap highlight on mobile */
+* {
+  -webkit-tap-highlight-color: rgba(255, 107, 107, 0.2);
+}
+
+/* Remove number input spinners */
+.no-spinner::-webkit-outer-spin-button,
+.no-spinner::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.no-spinner[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
