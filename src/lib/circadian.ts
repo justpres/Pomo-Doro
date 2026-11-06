@@ -71,12 +71,11 @@ export function detectChronotype(sessions: Session[]): ChronotypeResult {
             type: 'uncalibrated',
             label: 'Calibrating Rhythm...',
             icon: '🧭',
-            badge: 'Data Gathering',
-            scientificBasis:
-                'Nathaniel Kleitman (Basic Rest-Activity Cycle) & Till Roenneberg (Chronobiology)',
+            badge: 'Gathering Data',
+            scientificBasis: '',
             recommendation:
-                'Complete 3 or more focus sessions across different times of the day to detect your biological prime time and natural energy curve.',
-            optimalTasks: 'Log sessions throughout your work day to calibrate your profile.',
+                'Log a few sessions across the day to discover your peak focus hours.',
+            optimalTasks: '',
         };
     }
 
@@ -98,41 +97,38 @@ export function detectChronotype(sessions: Session[]): ChronotypeResult {
     if (morningCount >= middayCount && morningCount >= eveningCount) {
         return {
             type: 'lark',
-            label: 'Morning Lark (Early Chronotype)',
+            label: 'Morning Lark',
             icon: '🌅',
             badge: 'Early Peak',
-            scientificBasis:
-                'Roenneberg (2012): Cortisol awakening response and prefrontal executive capacity peak within 2–4 hours of waking.',
+            scientificBasis: '',
             recommendation:
-                'Your highest cognitive bandwidth occurs before noon. Schedule high-leverage analytical problem-solving, novel coding, and complex strategy in the morning. Use afternoons for meetings, reviews, and light admin.',
-            optimalTasks: 'Analytical coding, mathematical reasoning, architecture & writing.',
+                'Your focus peaks before noon. Schedule demanding deep work in the morning.',
+            optimalTasks: 'Analytical work, complex coding, writing.',
         };
     }
 
     if (eveningCount >= morningCount && eveningCount >= middayCount) {
         return {
             type: 'owl',
-            label: 'Night Owl (Late Chronotype)',
+            label: 'Night Owl',
             icon: '🦉',
             badge: 'Late Peak',
-            scientificBasis:
-                'Roenneberg & Merrow (2007): Delayed melatonin onset shifts peak executive vigilance into late afternoon and night.',
+            scientificBasis: '',
             recommendation:
-                'Your peak cognitive drive emerges later in the day. Avoid forcing demanding creative or analytical work early in the morning. Leverage uninterrupted evening blocks for deep focus sprints.',
-            optimalTasks: 'Creative flow, deep code sprints, architectural synthesis.',
+                'Your focus peaks later in the day. Save demanding deep work for afternoon and evening.',
+            optimalTasks: 'Creative flow, deep sprints, architecture.',
         };
     }
 
     return {
         type: 'intermediate',
-        label: 'Intermediate Rhythm (Balanced)',
+        label: 'Balanced Rhythm',
         icon: '🦅',
         badge: 'Steady State',
-        scientificBasis:
-            'Kleitman (1963): Balanced ultradian cycles with distinct mid-morning and late-afternoon alertness peaks.',
+        scientificBasis: '',
         recommendation:
-            'You experience steady cognitive stability throughout midday. Plan two distinct 90-minute ultradian blocks: one around 10:00–11:30 and a secondary focus session around 16:00–17:30. Take a true recovery break during the 13:30–15:00 post-lunch dip.',
-        optimalTasks: 'Balanced execution, iterative development, collaborative problem-solving.',
+            'Your energy is steady with natural focus peaks mid-morning and late afternoon.',
+        optimalTasks: 'Iterative development, balanced execution.',
     };
 }
 
