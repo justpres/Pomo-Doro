@@ -21,7 +21,11 @@ export const metadata: Metadata = {
   title: "Pomodoro Timer",
   description: "A beautifully designed, minimalist Pomodoro timer to help you stay focused and productive.",
   icons: {
-    icon: "/pomodoro.ico",
+    icon: [
+      { url: "/pomodoro.ico?v=2", type: "image/x-icon" },
+    ],
+    shortcut: "/pomodoro.ico?v=2",
+    apple: "/pomodoro.ico?v=2",
   },
   appleWebApp: {
     capable: true,
