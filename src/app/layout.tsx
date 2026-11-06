@@ -17,9 +17,38 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_APP_URL ||
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : 'https://pomodofocus.vercel.app');
+
 export const metadata: Metadata = {
-  title: "Pomodoro Timer",
-  description: "A beautifully designed, minimalist Pomodoro timer to help you stay focused and productive.",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "PomodoFocus — Minimalist Timer & Lofi Soundscapes",
+    template: "%s | PomodoFocus",
+  },
+  description:
+    "A beautifully designed, minimalist Pomodoro timer featuring ambient lofi radio, organic dynamic island controls, task management, and deep work presets.",
+  keywords: [
+    "pomodoro timer",
+    "lofi music",
+    "lofi radio",
+    "study timer",
+    "focus timer",
+    "productivity app",
+    "pomodofocus",
+    "chillhop",
+    "ambient soundscapes",
+    "flow state"
+  ],
+  authors: [{ name: "PomodoFocus Team" }],
+  creator: "PomodoFocus",
+  publisher: "PomodoFocus",
+  alternates: {
+    canonical: "/",
+  },
   icons: {
     icon: [
       { url: "/pomodoro.ico?v=2", type: "image/x-icon" },
@@ -27,10 +56,26 @@ export const metadata: Metadata = {
     shortcut: "/pomodoro.ico?v=2",
     apple: "/pomodoro.ico?v=2",
   },
+  openGraph: {
+    title: "PomodoFocus — Minimalist Timer & Lofi Soundscapes",
+    description:
+      "A beautifully designed, minimalist Pomodoro timer featuring ambient lofi radio, organic dynamic island controls, task management, and deep work presets.",
+    url: siteUrl,
+    siteName: "PomodoFocus",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "PomodoFocus — Minimalist Timer & Lofi Soundscapes",
+    description:
+      "A beautifully designed, minimalist Pomodoro timer featuring ambient lofi radio, organic dynamic island controls, task management, and deep work presets.",
+    creator: "@pomodofocus",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Pomodoro",
+    title: "PomodoFocus",
   },
 };
 
