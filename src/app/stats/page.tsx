@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { useSessionStore } from '@/store/sessionStore';
 import { StatsCard } from '@/components/StatsCard';
 import { CalendarHeatmap } from '@/components/CalendarHeatmap';
+import { CircadianAnalysisCard } from '@/components/CircadianAnalysisCard';
 import { useMounted } from '@/hooks/useMounted';
 
 export default function StatsPage() {
@@ -106,6 +107,9 @@ export default function StatsPage() {
                         color="#10B981"
                     />
                 </div>
+
+                {/* Circadian Quality Analysis & Chronotype Advisory */}
+                <CircadianAnalysisCard />
 
                 {/* Calendar Heatmap */}
                 <CalendarHeatmap days={35} />

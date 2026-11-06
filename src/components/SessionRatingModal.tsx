@@ -2,14 +2,16 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
+import { Portal } from './Portal';
 
 interface SessionRatingModalProps {
     isOpen: boolean;
     onClose: () => void;
     onRate: (rating: number) => void;
+    intention?: string | null;
 }
 
-export function SessionRatingModal({ isOpen, onClose, onRate }: SessionRatingModalProps) {
+export function SessionRatingModal({ isOpen, onClose, onRate, intention }: SessionRatingModalProps) {
     const [selectedRating, setSelectedRating] = useState(0);
     const [hoveredRating, setHoveredRating] = useState(0);
 
@@ -21,28 +23,43 @@ export function SessionRatingModal({ isOpen, onClose, onRate }: SessionRatingMod
     };
 
     return (
-        <AnimatePresence>
-            {isOpen && (
+        <Portal>
+            <AnimatePresence>
+                {isOpen && (
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/50 backdrop-blur-sm"
+                    transition={{ duration: 0.18, ease: 'easeOut' }}
+                    className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-stone-900/50 backdrop-blur-sm transform-gpu"
                     onClick={onClose}
                 >
                     <motion.div
-                        initial={{ scale: 0.95, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0.95, opacity: 0 }}
-                        className="bg-white rounded-2xl p-6 max-w-sm w-full border border-stone-200/80 shadow-2xl"
+                        initial={{ scale: 0.96, opacity: 0, y: 8 }}
+                        animate={{ scale: 1, opacity: 1, y: 0 }}
+                        exit={{ scale: 0.96, opacity: 0, y: 8 }}
+                        transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                        className="bg-white rounded-2xl p-6 max-w-sm w-full border border-stone-200/80 shadow-2xl transform-gpu"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <h3 className="text-lg font-semibold text-center mb-1 text-stone-900">
                             How was your focus?
                         </h3>
-                        <p className="text-xs text-center mb-5 text-stone-500">
+                        <p className="text-xs text-center mb-4 text-stone-500">
                             Rate this session to track your productivity
                         </p>
+
+                        {/* Implementation Intention Anchor Feedback */}
+                        {intention && (
+                            <div className="mb-4 px-3 py-1.5 rounded-xl bg-stone-50 border border-stone-200 text-center">
+                                <span className="text-[10px] uppercase tracking-wider font-semibold text-stone-400 block">
+                                    Target Commitment
+                                </span>
+                                <span className="text-xs font-medium text-stone-800 truncate block mt-0.5">
+                                    {intention}
+                                </span>
+                            </div>
+                        )}
 
                         {/* Star Rating */}
                         <div className="flex justify-center gap-2 mb-6">
@@ -90,5 +107,6 @@ export function SessionRatingModal({ isOpen, onClose, onRate }: SessionRatingMod
                 </motion.div>
             )}
         </AnimatePresence>
+    </Portal>
     );
 }

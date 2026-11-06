@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Preset } from '@/store/presetStore';
+import { Portal } from './Portal';
 
 interface PresetModalProps {
     isOpen: boolean;
@@ -164,15 +165,16 @@ function PresetModalForm({ onClose, onSave, preset }: PresetModalFormProps) {
 
 export function PresetModal({ isOpen, onClose, onSave, preset }: PresetModalProps) {
     return (
-        <AnimatePresence>
-            {isOpen && (
+        <Portal>
+            <AnimatePresence>
+                {isOpen && (
                 <>
                     {/* Backdrop */}
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50"
+                        className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[100]"
                         onClick={onClose}
                     />
 
@@ -181,7 +183,7 @@ export function PresetModal({ isOpen, onClose, onSave, preset }: PresetModalProp
                         initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                        className="fixed inset-0 z-[100] flex items-center justify-center p-4"
                     >
                         <div
                             className="card w-full max-w-md"
@@ -205,5 +207,6 @@ export function PresetModal({ isOpen, onClose, onSave, preset }: PresetModalProp
                 </>
             )}
         </AnimatePresence>
+    </Portal>
     );
 }

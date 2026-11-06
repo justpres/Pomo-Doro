@@ -234,7 +234,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <script
           type="application/ld+json"
@@ -242,6 +242,7 @@ export default function RootLayout({
         />
       </head>
       <body
+        suppressHydrationWarning
         className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} antialiased min-h-screen text-[var(--text-dark)] bg-[var(--background)] transition-colors duration-500`}
       >
         <Navigation />

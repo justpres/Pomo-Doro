@@ -4,9 +4,17 @@ import { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMusicStore, STATIONS } from '@/store/musicStore';
 import { useMounted } from '@/hooks/useMounted';
+import {
+    isProceduralStation,
+    proceduralAudio,
+    ProceduralSoundId,
+} from '@/lib/proceduralAudio';
 
 const STATION_SUBTITLES: Record<string, string> = {
     'lofi-radio': 'Lofi Beats',
+    'brown-noise': 'Deep Focus',
+    'pink-noise': 'Steady State',
+    'gamma-40hz': 'Cortical Drive',
     'chillhop': 'Chillhop',
     'smooth-chill': 'Smooth Jazz',
     'coffee-shop': 'Cafe Vibes',
@@ -16,12 +24,14 @@ const STATION_SUBTITLES: Record<string, string> = {
 // - desktop variant: controls rendered inside the continuous vector droplet in Navigation.tsx
 // - mobile variant: floating droplet pill at top of screen
 export function SoundscapeDroplet({ variant = 'desktop' }: { variant?: 'desktop' | 'mobile' }) {
-    const { isPlaying, currentStationId, togglePlay, nextStation, previousStation } = useMusicStore();
-    const currentStation = STATIONS.find(s => s.id === currentStationId) || STATIONS[0];
+    const { isPlaying, currentStationId, togglePlay, nextStation, previousStation } =
+        useMusicStore();
+    const currentStation = STATIONS.find((s) => s.id === currentStationId) || STATIONS[0];
+    const isProcedural = isProceduralStation(currentStation.id);
 
     const content = (
         <div className="flex items-center justify-between w-full h-full px-3 select-none text-stone-800">
-            {/* Left: Spinning Vinyl Record Disc Badge (Click to go to previous station) */}
+            {/* Left: Spinning Vinyl Disc Badge (Click to go to previous station) */}
             <button
                 onClick={previousStation}
                 className="w-7 h-7 rounded-full bg-stone-950 border border-stone-800 flex items-center justify-center relative overflow-hidden flex-shrink-0 shadow-xs cursor-pointer focus:outline-hidden hover:border-stone-700 transition-colors"
@@ -34,15 +44,28 @@ export function SoundscapeDroplet({ variant = 'desktop' }: { variant?: 'desktop'
                     className="w-full h-full flex items-center justify-center"
                 >
                     <div className="w-4 h-4 rounded-full border border-stone-800 flex items-center justify-center">
-                        <span className={`w-1.5 h-1.5 rounded-full ${isPlaying ? 'bg-[#FF6363]' : 'bg-stone-500'}`} />
+                        <span
+                            className={`w-1.5 h-1.5 rounded-full ${
+                                isPlaying
+                                    ? isProcedural
+                                        ? 'bg-emerald-500'
+                                        : 'bg-[#FF6363]'
+                                    : 'bg-stone-500'
+                            }`}
+                        />
                     </div>
                 </motion.div>
             </button>
 
-            {/* Middle: Stacked Two-Line Typography (Spotify Island style: Category/Artist on top, Title below) */}
+            {/* Middle: Stacked Two-Line Typography */}
             <div className="flex flex-col justify-center min-w-0 text-left flex-1 pl-2.5 pr-2">
-                <span className="text-[9px] font-semibold text-stone-400 uppercase tracking-wider truncate block leading-tight">
+                <span className="text-[9px] font-semibold text-stone-400 uppercase tracking-wider truncate block leading-tight flex items-center gap-1">
                     {STATION_SUBTITLES[currentStation.id] || 'Lofi Beats'}
+                    {isProcedural && (
+                        <span className="text-[8px] font-bold text-emerald-600 bg-emerald-50 px-1 py-0.2 rounded">
+                            Neuro
+                        </span>
+                    )}
                 </span>
                 <AnimatePresence mode="wait">
                     <motion.span
@@ -58,14 +81,16 @@ export function SoundscapeDroplet({ variant = 'desktop' }: { variant?: 'desktop'
                 </AnimatePresence>
             </div>
 
-            {/* Right: Transport Controls (Play/Pause with glowing ring + Next Station) */}
+            {/* Right: Transport Controls */}
             <div className="flex items-center gap-1.5 flex-shrink-0">
                 {/* Circular Play/Pause Button */}
                 <button
                     onClick={togglePlay}
-                    className={`w-7 h-7 rounded-full flex items-center justify-center transition-all active:scale-90 flex-shrink-0 ${
+                    className={`w-7 h-7 rounded-full flex items-center justify-center transition-all active:scale-90 flex-shrink-0 cursor-pointer ${
                         isPlaying
-                            ? 'bg-[#FF6363] text-white hover:bg-[#E04848] ring-2 ring-[#FF6363]/30 shadow-xs'
+                            ? isProcedural
+                                ? 'bg-emerald-600 text-white hover:bg-emerald-700 ring-2 ring-emerald-500/30 shadow-xs'
+                                : 'bg-[#FF6363] text-white hover:bg-[#E04848] ring-2 ring-[#FF6363]/30 shadow-xs'
                             : 'bg-stone-100 text-stone-700 hover:bg-stone-200/80 hover:text-stone-900 ring-1 ring-stone-200/80'
                     }`}
                     aria-label={isPlaying ? 'Pause soundscape' : 'Play soundscape'}
@@ -77,16 +102,23 @@ export function SoundscapeDroplet({ variant = 'desktop' }: { variant?: 'desktop'
                             <rect x="14" y="4" width="4" height="16" rx="1" />
                         </svg>
                     ) : (
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" className="ml-0.5 text-[#FF6363]" aria-hidden="true">
+                        <svg
+                            width="10"
+                            height="10"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                            className={`ml-0.5 ${isProcedural ? 'text-emerald-600' : 'text-[#FF6363]'}`}
+                            aria-hidden="true"
+                        >
                             <path d="M5 3l14 9-14 9V3z" />
                         </svg>
                     )}
                 </button>
 
-                {/* Next Station Button (⏭) */}
+                {/* Next Station Button */}
                 <button
                     onClick={nextStation}
-                    className="w-6 h-6 rounded-full flex items-center justify-center text-stone-400 hover:text-stone-800 hover:bg-stone-100 transition-colors active:scale-90 flex-shrink-0"
+                    className="w-6 h-6 rounded-full flex items-center justify-center text-stone-400 hover:text-stone-800 hover:bg-stone-100 transition-colors active:scale-90 flex-shrink-0 cursor-pointer"
                     aria-label="Next soundscape"
                     title="Next soundscape"
                 >
@@ -116,75 +148,88 @@ export function SoundscapeDroplet({ variant = 'desktop' }: { variant?: 'desktop'
 }
 
 export function MusicPlayer() {
-    const {
-        isPlaying,
-        volume,
-        currentStationId,
-        isMuted
-    } = useMusicStore();
-
+    const { isPlaying, volume, currentStationId, isMuted } = useMusicStore();
     const audioRef = useRef<HTMLAudioElement>(null);
     const mounted = useMounted();
 
-    const currentStation = STATIONS.find(s => s.id === currentStationId) || STATIONS[0];
+    const currentStation = STATIONS.find((s) => s.id === currentStationId) || STATIONS[0];
+    const isProcedural = isProceduralStation(currentStation.id);
 
     // Handle Volume
     useEffect(() => {
+        const effectiveVol = isMuted ? 0 : volume / 100;
         if (audioRef.current) {
-            audioRef.current.volume = isMuted ? 0 : volume / 100;
+            audioRef.current.volume = effectiveVol;
         }
+        proceduralAudio.setVolume(effectiveVol);
     }, [volume, isMuted]);
 
-    // Handle Play/Pause and station switching cleanly without AbortError noise
+    // Handle Play/Pause and Station switching
     useEffect(() => {
         const audio = audioRef.current;
-        if (!audio) return;
-
         let isCancelled = false;
 
         if (isPlaying) {
-            const playPromise = audio.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    // AbortError is a normal HTML5 Audio behavior when switching streams
-                    // or when a play() call is superseded by a subsequent load request.
-                    if (error.name === 'AbortError' || isCancelled) {
-                        return;
+            if (isProceduralStation(currentStationId)) {
+                // Procedural soundscape: stop HTML5 stream, play procedural audio
+                if (audio) {
+                    audio.pause();
+                }
+                proceduralAudio.play(
+                    currentStationId as ProceduralSoundId,
+                    isMuted ? 0 : volume / 100
+                );
+            } else {
+                // Web radio stream: stop procedural audio, play HTML5 stream
+                proceduralAudio.stop();
+                if (audio) {
+                    const playPromise = audio.play();
+                    if (playPromise !== undefined) {
+                        playPromise.catch((error) => {
+                            if (error.name === 'AbortError' || isCancelled) return;
+                            if (error.name === 'NotAllowedError') return;
+                            console.warn('Audio play notice:', error);
+                        });
                     }
-                    if (error.name === 'NotAllowedError') {
-                        // Browser autoplay restriction before user interaction
-                        return;
-                    }
-                    console.warn('Audio play notice:', error);
-                });
+                }
             }
         } else {
-            audio.pause();
+            if (audio) {
+                audio.pause();
+            }
+            proceduralAudio.stop();
         }
 
         return () => {
             isCancelled = true;
         };
-    }, [isPlaying, currentStationId]);
+    }, [isPlaying, currentStationId, isMuted, volume]);
+
+    // Stop procedural audio on unmount
+    useEffect(() => {
+        return () => {
+            proceduralAudio.stop();
+        };
+    }, []);
 
     if (!mounted) return null;
 
     return (
         <>
-            {/* Native Invisible Audio Element */}
+            {/* Native Invisible Audio Element for Stream playback */}
             <div
                 className="fixed pointer-events-none opacity-0 overflow-hidden"
                 style={{ width: '1px', height: '1px', left: '-10px', bottom: '0', zIndex: -1 }}
             >
                 <audio
                     ref={audioRef}
-                    src={currentStation.streamUrl}
+                    src={isProcedural ? undefined : currentStation.streamUrl}
                     preload="none"
                     crossOrigin="anonymous"
                 />
             </div>
 
-            {/* Mobile Soundscape Droplet (Desktop variant is seamlessly part of Navigation header) */}
+            {/* Mobile Soundscape Droplet (Desktop variant is rendered inside Navigation) */}
             <SoundscapeDroplet variant="mobile" />
         </>
     );

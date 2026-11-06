@@ -12,6 +12,12 @@ import { useSessionStore } from './sessionStore';
 import { useTaskStore } from './taskStore';
 import { usePresetStore } from './presetStore';
 
+export interface ResumptionCue {
+    whereLeftOff: string;
+    nextAction: string;
+    createdAt: number;
+}
+
 export interface TimerSettings {
     focusDuration: number;
     shortBreakDuration: number;
@@ -22,6 +28,9 @@ export interface TimerSettings {
     soundEnabled: boolean;
     soundVolume: number;
     selectedSound: string;
+    autoOpenBreathwork?: boolean;
+    promptIntention?: boolean;
+    zenModeEnabled?: boolean;
 }
 
 export interface TimerState {
@@ -33,12 +42,15 @@ export interface TimerState {
     endsAt: number | null;
     remainingMs: number;
     sessionDuration: number;
+    currentIntention: string | null;
+    resumptionCue: ResumptionCue | null;
     lastCompletion: {
         id: string;
         mode: TimerMode;
         at: number;
         silent: boolean;
     } | null;
+    isZenActive: boolean;
 
     // Settings
     settings: TimerSettings;
@@ -50,6 +62,10 @@ export interface TimerState {
     skip: () => void;
     sync: (now?: number) => void;
     setMode: (mode: TimerMode) => void;
+    setIntention: (intention: string | null) => void;
+    setResumptionCue: (cue: { whereLeftOff: string; nextAction: string } | null) => void;
+    clearResumptionCue: () => void;
+    setZenActive: (isZenActive: boolean) => void;
     updateSettings: (settings: Partial<TimerSettings>) => void;
     finishSession: (endedAt: number, opts?: { silent?: boolean }) => void;
 }
@@ -64,6 +80,9 @@ const defaultSettings: TimerSettings = {
     soundEnabled: true,
     soundVolume: 80,
     selectedSound: 'digital-alarm-clock-2.mp3',
+    autoOpenBreathwork: false,
+    promptIntention: true,
+    zenModeEnabled: true,
 };
 
 export const useTimerStore = create<TimerState>()(
@@ -76,8 +95,31 @@ export const useTimerStore = create<TimerState>()(
             endsAt: null,
             remainingMs: DEFAULT_FOCUS_DURATION * 1000,
             sessionDuration: DEFAULT_FOCUS_DURATION,
+            currentIntention: null,
+            resumptionCue: null,
             lastCompletion: null,
+            isZenActive: false,
             settings: defaultSettings,
+
+            setIntention: (currentIntention) => set({ currentIntention }),
+
+            setResumptionCue: (cue) => {
+                if (!cue) {
+                    set({ resumptionCue: null });
+                    return;
+                }
+                set({
+                    resumptionCue: {
+                        whereLeftOff: cue.whereLeftOff.trim(),
+                        nextAction: cue.nextAction.trim(),
+                        createdAt: Date.now(),
+                    },
+                });
+            },
+
+            clearResumptionCue: () => set({ resumptionCue: null }),
+
+            setZenActive: (isZenActive) => set({ isZenActive }),
 
             start: () => {
                 const state = get();
@@ -101,6 +143,7 @@ export const useTimerStore = create<TimerState>()(
                     endsAt: null,
                     remainingMs,
                     timeRemaining: Math.ceil(remainingMs / 1000),
+                    isZenActive: false,
                 });
             },
 
@@ -113,6 +156,7 @@ export const useTimerStore = create<TimerState>()(
                     sessionDuration: durationSec,
                     remainingMs: durationSec * 1000,
                     timeRemaining: durationSec,
+                    isZenActive: false,
                 });
             },
 
@@ -128,6 +172,7 @@ export const useTimerStore = create<TimerState>()(
                     sessionDuration: nextDuration,
                     remainingMs: nextDuration * 1000,
                     timeRemaining: nextDuration,
+                    isZenActive: false,
                 });
             },
 
@@ -158,6 +203,7 @@ export const useTimerStore = create<TimerState>()(
                     sessionDuration: durationSec,
                     remainingMs: durationSec * 1000,
                     timeRemaining: durationSec,
+                    isZenActive: false,
                 });
             },
 
@@ -194,6 +240,7 @@ export const useTimerStore = create<TimerState>()(
                         duration: sessionDuration,
                         completedAt: endedAt,
                         presetId: activePresetId || undefined,
+                        intention: state.currentIntention || undefined,
                     });
 
                     if (activeTaskId) {
@@ -244,6 +291,7 @@ export const useTimerStore = create<TimerState>()(
                     endsAt: nextEndsAt,
                     remainingMs: nextRemainingMs,
                     timeRemaining: nextTimeRemaining,
+                    isZenActive: false,
                     lastCompletion: {
                         id: loggedSessionId || `complete-${Date.now()}`,
                         mode,

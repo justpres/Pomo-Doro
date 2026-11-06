@@ -1,6 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
+import { Portal } from './Portal';
 
 interface ConfirmDialogProps {
     isOpen: boolean;
@@ -11,10 +12,11 @@ interface ConfirmDialogProps {
 }
 
 export function ConfirmDialog({ isOpen, title, message, onConfirm, onCancel }: ConfirmDialogProps) {
-    if (!isOpen) return null;
+
 
     return (
-        <AnimatePresence>
+        <Portal>
+            <AnimatePresence>
             {isOpen && (
                 <>
                     {/* Backdrop */}
@@ -23,17 +25,17 @@ export function ConfirmDialog({ isOpen, title, message, onConfirm, onCancel }: C
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onCancel}
-                        className="fixed inset-0 z-50"
+                        className="fixed inset-0 z-[110]"
                         style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
                     />
 
                     {/* Dialog */}
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                        initial={{ opacity: 0, scale: 0.96, y: 8 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                        exit={{ opacity: 0, scale: 0.96, y: 8 }}
+                        transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                        className="fixed inset-0 z-[110] flex items-center justify-center p-4 transform-gpu"
                     >
                         <div
                             className="w-full max-w-sm rounded-2xl p-6 shadow-xl"
@@ -108,5 +110,6 @@ export function ConfirmDialog({ isOpen, title, message, onConfirm, onCancel }: C
                 </>
             )}
         </AnimatePresence>
+    </Portal>
     );
 }

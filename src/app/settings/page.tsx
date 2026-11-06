@@ -488,6 +488,78 @@ export default function SettingsPage() {
                     <div className="flex items-center justify-between py-1 border-t border-stone-100">
                         <div>
                             <span className="text-xs sm:text-sm font-medium text-stone-800 block">
+                                Deep Focus Zen Mode
+                            </span>
+                            <span className="text-[11px] text-stone-400">
+                                Automatically fade out navigation and peripheral controls while focusing (revealed on mouse movement)
+                            </span>
+                        </div>
+                        <button
+                            onClick={() => updateSettings({ zenModeEnabled: settings.zenModeEnabled === false ? true : false })}
+                            className={`w-11 h-6 rounded-full transition-colors relative p-0.5 flex-shrink-0 ${
+                                settings.zenModeEnabled !== false ? 'bg-[#FF6363]' : 'bg-stone-200'
+                            }`}
+                            aria-label="Toggle deep focus zen mode"
+                        >
+                            <motion.div
+                                className="w-5 h-5 bg-white rounded-full shadow-xs"
+                                animate={{ x: settings.zenModeEnabled !== false ? 20 : 0 }}
+                                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                            />
+                        </button>
+                    </div>
+
+                    <div className="flex items-center justify-between py-1 border-t border-stone-100">
+                        <div>
+                            <span className="text-xs sm:text-sm font-medium text-stone-800 block">
+                                Prompt Sprint Target Commitment
+                            </span>
+                            <span className="text-[11px] text-stone-400">
+                                Ask for your single concrete objective before starting a focus sprint (Gollwitzer, 1999)
+                            </span>
+                        </div>
+                        <button
+                            onClick={() => updateSettings({ promptIntention: settings.promptIntention === false ? true : false })}
+                            className={`w-11 h-6 rounded-full transition-colors relative p-0.5 flex-shrink-0 ${
+                                settings.promptIntention !== false ? 'bg-[#FF6363]' : 'bg-stone-200'
+                            }`}
+                            aria-label="Toggle prompt sprint target"
+                        >
+                            <motion.div
+                                className="w-5 h-5 bg-white rounded-full shadow-xs"
+                                animate={{ x: settings.promptIntention !== false ? 20 : 0 }}
+                                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                            />
+                        </button>
+                    </div>
+
+                    <div className="flex items-center justify-between py-1 border-t border-stone-100">
+                        <div>
+                            <span className="text-xs sm:text-sm font-medium text-stone-800 block">
+                                Auto-open Guided Breathwork
+                            </span>
+                            <span className="text-[11px] text-stone-400">
+                                Automatically display the Stanford Cyclic Sigh recovery guide when breaks begin
+                            </span>
+                        </div>
+                        <button
+                            onClick={() => updateSettings({ autoOpenBreathwork: !settings.autoOpenBreathwork })}
+                            className={`w-11 h-6 rounded-full transition-colors relative p-0.5 flex-shrink-0 ${
+                                settings.autoOpenBreathwork ? 'bg-[#FF6363]' : 'bg-stone-200'
+                            }`}
+                            aria-label="Toggle auto-open breathwork on breaks"
+                        >
+                            <motion.div
+                                className="w-5 h-5 bg-white rounded-full shadow-xs"
+                                animate={{ x: settings.autoOpenBreathwork ? 20 : 0 }}
+                                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                            />
+                        </button>
+                    </div>
+
+                    <div className="flex items-center justify-between py-1 border-t border-stone-100">
+                        <div>
+                            <span className="text-xs sm:text-sm font-medium text-stone-800 block">
                                 Auto-start Pomodoros
                             </span>
                             <span className="text-[11px] text-stone-400">

@@ -27,6 +27,7 @@ describe('timerStore', () => {
                 soundEnabled: true,
                 soundVolume: 80,
                 selectedSound: 'digital-alarm-clock-2.mp3',
+                zenModeEnabled: true,
             },
         });
     });
@@ -150,5 +151,50 @@ describe('timerStore', () => {
         expect(state.settings.focusDuration).toBe(1800);
         expect(state.sessionDuration).toBe(1500); // Current session remains 1500s
         expect(state.endsAt).toBe(now + 1500 * 1000);
+    });
+
+    it('sets, stores, and clears ready-to-resume cues correctly', () => {
+        expect(useTimerStore.getState().resumptionCue).toBeNull();
+
+        useTimerStore.getState().setResumptionCue({
+            whereLeftOff: 'Finished auth middleware on line 42',
+            nextAction: 'Write unit tests for token expiration',
+        });
+
+        const state = useTimerStore.getState();
+        expect(state.resumptionCue?.whereLeftOff).toBe('Finished auth middleware on line 42');
+        expect(state.resumptionCue?.nextAction).toBe('Write unit tests for token expiration');
+        expect(state.resumptionCue?.createdAt).toBeDefined();
+
+        useTimerStore.getState().clearResumptionCue();
+        expect(useTimerStore.getState().resumptionCue).toBeNull();
+    });
+
+    it('manages deep focus zen mode state and resets on pause/reset/skip/mode changes', () => {
+        expect(useTimerStore.getState().isZenActive).toBe(false);
+        expect(useTimerStore.getState().settings.zenModeEnabled).toBe(true);
+
+        useTimerStore.getState().setZenActive(true);
+        expect(useTimerStore.getState().isZenActive).toBe(true);
+
+        // Pause resets zen
+        useTimerStore.setState({ isRunning: true });
+        useTimerStore.getState().pause();
+        expect(useTimerStore.getState().isZenActive).toBe(false);
+
+        // Reset clears zen
+        useTimerStore.getState().setZenActive(true);
+        useTimerStore.getState().reset();
+        expect(useTimerStore.getState().isZenActive).toBe(false);
+
+        // Skip clears zen
+        useTimerStore.getState().setZenActive(true);
+        useTimerStore.getState().skip();
+        expect(useTimerStore.getState().isZenActive).toBe(false);
+
+        // Mode change clears zen
+        useTimerStore.getState().setZenActive(true);
+        useTimerStore.getState().setMode('shortBreak');
+        expect(useTimerStore.getState().isZenActive).toBe(false);
     });
 });

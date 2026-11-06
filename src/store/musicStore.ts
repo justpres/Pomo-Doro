@@ -6,6 +6,7 @@ export interface Station {
     name: string;
     description: string;
     streamUrl: string;
+    type?: 'stream' | 'procedural';
 }
 
 export const STATIONS: Station[] = [
@@ -14,25 +15,50 @@ export const STATIONS: Station[] = [
         name: 'Lofi 24/7',
         description: 'Chill beats to relax/study to',
         streamUrl: 'https://play.streamafrica.net/lofiradio',
+        type: 'stream',
+    },
+    {
+        id: 'brown-noise',
+        name: 'Brown Noise',
+        description: 'Velvety deep focus acoustic masking',
+        streamUrl: 'procedural://brown-noise',
+        type: 'procedural',
+    },
+    {
+        id: 'pink-noise',
+        name: 'Pink Noise',
+        description: '1/f rainfall steady state focus',
+        streamUrl: 'procedural://pink-noise',
+        type: 'procedural',
+    },
+    {
+        id: 'gamma-40hz',
+        name: '40Hz Gamma',
+        description: '40Hz cognitive gamma entrainment',
+        streamUrl: 'procedural://gamma-40hz',
+        type: 'procedural',
     },
     {
         id: 'chillhop',
         name: 'Chillhop Radio',
         description: 'Jazzy & Lofi Hip Hop beats',
         streamUrl: 'https://streams.fluxfm.de/Chillhop/mp3-128/streams.fluxfm.de/',
+        type: 'stream',
     },
     {
         id: 'smooth-chill',
         name: 'Smooth Chill',
         description: 'Relaxing smooth jazz & beats',
         streamUrl: 'https://media-ssl.musicradio.com/SmoothChill',
+        type: 'stream',
     },
     {
         id: 'coffee-shop',
         name: 'Coffee Shop Vibes',
         description: 'Cafe ambiance & jazz',
         streamUrl: 'https://ais-sa8.cdnstream1.com/3629_128.mp3',
-    }
+        type: 'stream',
+    },
 ];
 
 interface MusicState {
@@ -70,7 +96,7 @@ export const useMusicStore = create<MusicState>()(
             setVolume: (volume) => set({ volume }),
 
             setStation: (stationId) => {
-                const valid = STATIONS.some(s => s.id === stationId);
+                const valid = STATIONS.some((s) => s.id === stationId);
                 set({ currentStationId: valid ? stationId : STATIONS[0].id, isPlaying: true });
             },
 
@@ -80,25 +106,25 @@ export const useMusicStore = create<MusicState>()(
 
             nextStation: () => {
                 const { currentStationId } = get();
-                const currentIndex = STATIONS.findIndex(s => s.id === currentStationId);
+                const currentIndex = STATIONS.findIndex((s) => s.id === currentStationId);
                 const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % STATIONS.length;
                 set({ currentStationId: STATIONS[nextIndex].id, isPlaying: true });
             },
 
             previousStation: () => {
                 const { currentStationId } = get();
-                const currentIndex = STATIONS.findIndex(s => s.id === currentStationId);
-                const prevIndex = currentIndex === -1 ? 0 : (currentIndex - 1 + STATIONS.length) % STATIONS.length;
+                const currentIndex = STATIONS.findIndex((s) => s.id === currentStationId);
+                const prevIndex =
+                    currentIndex === -1 ? 0 : (currentIndex - 1 + STATIONS.length) % STATIONS.length;
                 set({ currentStationId: STATIONS[prevIndex].id, isPlaying: true });
             },
 
             duckVolume: () => {
                 const { volume, savedVolume, isPlaying } = get();
-                // Only duck if music is playing and not already ducked
                 if (isPlaying && savedVolume === null) {
                     set({
                         savedVolume: volume,
-                        volume: 5 // Lower to 5% for very noticeable ducking
+                        volume: 5,
                     });
                 }
             },
@@ -108,7 +134,7 @@ export const useMusicStore = create<MusicState>()(
                 if (savedVolume !== null) {
                     set({
                         volume: savedVolume,
-                        savedVolume: null
+                        savedVolume: null,
                     });
                 }
             },
@@ -123,7 +149,7 @@ export const useMusicStore = create<MusicState>()(
             migrate: (persistedState: unknown) => {
                 if (persistedState && typeof persistedState === 'object') {
                     const state = { ...(persistedState as Record<string, unknown>) };
-                    if (!STATIONS.some(s => s.id === state.currentStationId)) {
+                    if (!STATIONS.some((s) => s.id === state.currentStationId)) {
                         state.currentStationId = STATIONS[0].id;
                     }
                     return state as unknown as MusicState;
@@ -132,7 +158,7 @@ export const useMusicStore = create<MusicState>()(
             },
             onRehydrateStorage: () => (state) => {
                 if (!state) return;
-                if (!STATIONS.some(s => s.id === state.currentStationId)) {
+                if (!STATIONS.some((s) => s.id === state.currentStationId)) {
                     state.currentStationId = STATIONS[0].id;
                 }
             },

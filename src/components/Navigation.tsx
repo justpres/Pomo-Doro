@@ -3,7 +3,9 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useRef, useState, useEffect } from 'react';
 import { SoundscapeDroplet } from './MusicPlayer';
+import { useTimerStore } from '@/store/timerStore';
 
 interface IconProps {
     active: boolean;
@@ -57,11 +59,64 @@ const navItems = [
 
 export function Navigation() {
     const pathname = usePathname();
+    const desktopNavRef = useRef<HTMLElement>(null);
+    const mobileNavRef = useRef<HTMLDivElement>(null);
+    const isZenActive = useTimerStore((s) => s.isZenActive);
+
+    const [desktopPill, setDesktopPill] = useState({ left: 0, top: 0, width: 0, height: 0, opacity: 0 });
+    const [mobilePill, setMobilePill] = useState({ left: 0, top: 0, width: 0, height: 0, opacity: 0 });
+
+    useEffect(() => {
+        const updatePills = () => {
+            if (desktopNavRef.current) {
+                const active = desktopNavRef.current.querySelector<HTMLElement>('[data-active="true"]');
+                if (active) {
+                    setDesktopPill({
+                        left: active.offsetLeft,
+                        top: active.offsetTop,
+                        width: active.offsetWidth,
+                        height: active.offsetHeight,
+                        opacity: 1,
+                    });
+                }
+            }
+            if (mobileNavRef.current) {
+                const active = mobileNavRef.current.querySelector<HTMLElement>('[data-active="true"]');
+                if (active) {
+                    setMobilePill({
+                        left: active.offsetLeft,
+                        top: active.offsetTop,
+                        width: active.offsetWidth,
+                        height: active.offsetHeight,
+                        opacity: 1,
+                    });
+                }
+            }
+        };
+
+        // Run measurement on frame to ensure layout is ready
+        const raf = requestAnimationFrame(updatePills);
+        window.addEventListener('resize', updatePills);
+        return () => {
+            cancelAnimationFrame(raf);
+            window.removeEventListener('resize', updatePills);
+        };
+    }, [pathname]);
 
     return (
         <>
-            {/* Desktop Navigation: Single Continuous Vector Silhouette */}
-            <header className="fixed top-5 left-1/2 -translate-x-1/2 z-50 hidden md:flex flex-col items-center w-[496px] pointer-events-none">
+            {/* Desktop Navigation: Single Continuous Vector Silhouette (Fades out smoothly in Zen Mode) */}
+            <motion.header
+                initial={false}
+                animate={{
+                    y: isZenActive ? -90 : 0,
+                    opacity: isZenActive ? 0 : 1,
+                }}
+                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                className={`fixed top-5 left-1/2 -translate-x-1/2 z-50 hidden md:flex flex-col items-center w-[496px] pointer-events-none ${
+                    isZenActive ? 'pointer-events-none' : ''
+                }`}
+            >
                 {/* Unified SVG Background: Single continuous path for nav + liquid meniscus droplet */}
                 <div className="absolute inset-0 -z-10 pointer-events-none">
                     <svg
@@ -82,7 +137,31 @@ export function Navigation() {
                 </div>
 
                 {/* Top Row: Navigation Links */}
-                <nav className="h-[48px] w-full flex items-center justify-around px-3 pointer-events-auto" aria-label="Main Navigation">
+                <nav
+                    ref={desktopNavRef}
+                    className="relative h-[48px] w-full flex items-center justify-around px-3 pointer-events-auto"
+                    aria-label="Main Navigation"
+                >
+                    {/* Continuous Sliding Pill (Local coordinate geometry - 100% immune to page scroll) */}
+                    <motion.div
+                        className="absolute bg-[#FF6363] rounded-full shadow-xs pointer-events-none z-0"
+                        initial={false}
+                        animate={{
+                            left: desktopPill.left,
+                            top: desktopPill.top,
+                            width: desktopPill.width,
+                            height: desktopPill.height,
+                            opacity: desktopPill.opacity,
+                        }}
+                        transition={{
+                            left: { type: 'spring', stiffness: 380, damping: 30 },
+                            width: { type: 'spring', stiffness: 380, damping: 30 },
+                            top: { type: 'spring', stiffness: 380, damping: 30 },
+                            height: { type: 'spring', stiffness: 380, damping: 30 },
+                            opacity: { duration: 0.15 },
+                        }}
+                    />
+
                     {navItems.map((item) => {
                         const isActive = pathname === item.href;
                         const Icon = item.Icon;
@@ -90,22 +169,14 @@ export function Navigation() {
                             <Link
                                 key={item.href}
                                 href={item.href}
+                                data-active={isActive ? 'true' : undefined}
                                 aria-current={isActive ? 'page' : undefined}
-                                className={`relative px-4 py-2 text-xs font-medium rounded-full transition-all duration-150 flex items-center gap-2 select-none ${
+                                className={`relative z-10 px-4 py-2 text-xs font-medium rounded-full transition-colors duration-150 flex items-center gap-2 select-none ${
                                     isActive ? 'text-white' : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100/60'
                                 }`}
                             >
-                                {isActive && (
-                                    <motion.div
-                                        layoutId="activeNavDesktop"
-                                        className="absolute inset-0 bg-[#FF6363] rounded-full shadow-xs"
-                                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                                    />
-                                )}
-                                <span className="relative z-10 flex items-center gap-2 font-medium">
-                                    <Icon active={isActive} />
-                                    <span>{item.label}</span>
-                                </span>
+                                <Icon active={isActive} />
+                                <span>{item.label}</span>
                             </Link>
                         );
                     })}
@@ -115,11 +186,45 @@ export function Navigation() {
                 <div className="h-[40px] w-[248px] flex items-center justify-center pointer-events-auto">
                     <SoundscapeDroplet variant="desktop" />
                 </div>
-            </header>
+            </motion.header>
 
-            {/* Mobile Navigation: Floating Bottom Pill with 44px+ touch targets */}
-            <nav className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 md:hidden w-[92%] max-w-sm" aria-label="Mobile Navigation">
-                <div className="flex items-center justify-around px-2 py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-stone-200/80 shadow-[0_4px_20px_rgba(28,25,23,0.08)]">
+            {/* Mobile Navigation: Floating Bottom Pill with 44px+ touch targets (Fades out smoothly in Zen Mode) */}
+            <motion.nav
+                initial={false}
+                animate={{
+                    y: isZenActive ? 90 : 0,
+                    opacity: isZenActive ? 0 : 1,
+                }}
+                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                className={`fixed bottom-5 left-1/2 -translate-x-1/2 z-50 md:hidden w-[92%] max-w-sm ${
+                    isZenActive ? 'pointer-events-none' : ''
+                }`}
+                aria-label="Mobile Navigation"
+            >
+                <div
+                    ref={mobileNavRef}
+                    className="relative flex items-center justify-around px-2 py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-stone-200/80 shadow-[0_4px_20px_rgba(28,25,23,0.08)]"
+                >
+                    {/* Mobile Continuous Sliding Pill */}
+                    <motion.div
+                        className="absolute bg-[#FF6363] rounded-full shadow-xs pointer-events-none z-0"
+                        initial={false}
+                        animate={{
+                            left: mobilePill.left,
+                            top: mobilePill.top,
+                            width: mobilePill.width,
+                            height: mobilePill.height,
+                            opacity: mobilePill.opacity,
+                        }}
+                        transition={{
+                            left: { type: 'spring', stiffness: 380, damping: 30 },
+                            width: { type: 'spring', stiffness: 380, damping: 30 },
+                            top: { type: 'spring', stiffness: 380, damping: 30 },
+                            height: { type: 'spring', stiffness: 380, damping: 30 },
+                            opacity: { duration: 0.15 },
+                        }}
+                    />
+
                     {navItems.map((item) => {
                         const isActive = pathname === item.href;
                         const Icon = item.Icon;
@@ -127,30 +232,22 @@ export function Navigation() {
                             <Link
                                 key={item.href}
                                 href={item.href}
+                                data-active={isActive ? 'true' : undefined}
                                 aria-current={isActive ? 'page' : undefined}
-                                className={`relative flex flex-col items-center justify-center min-w-[48px] min-h-[46px] px-2 py-1 rounded-full transition-all duration-150 ${
+                                className={`relative z-10 flex flex-col items-center justify-center min-w-[48px] min-h-[46px] px-2 py-1 rounded-full transition-colors duration-150 ${
                                     isActive ? 'text-white' : 'text-stone-600 active:bg-stone-100/60'
                                 }`}
                                 aria-label={item.label}
                             >
-                                {isActive && (
-                                    <motion.div
-                                        layoutId="activeNavMobile"
-                                        className="absolute inset-0 bg-[#FF6363] rounded-full shadow-xs"
-                                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                                    />
-                                )}
-                                <span className="relative z-10 flex flex-col items-center">
-                                    <Icon active={isActive} />
-                                    <span className={`text-[10px] mt-0.5 font-medium ${isActive ? 'text-white font-semibold' : 'text-stone-600'}`}>
-                                        {item.label}
-                                    </span>
+                                <Icon active={isActive} />
+                                <span className={`text-[10px] mt-0.5 font-medium ${isActive ? 'text-white font-semibold' : 'text-stone-600'}`}>
+                                    {item.label}
                                 </span>
                             </Link>
                         );
                     })}
                 </div>
-            </nav>
+            </motion.nav>
         </>
     );
 }

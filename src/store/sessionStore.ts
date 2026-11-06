@@ -9,6 +9,7 @@ export interface Session {
     completedAt: string; // ISO date string
     presetId?: string;
     focusQuality?: number; // 1-5 rating
+    intention?: string;
 }
 
 export type LogSessionInput = Omit<Session, 'id' | 'completedAt'> & {
