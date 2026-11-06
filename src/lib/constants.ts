@@ -16,9 +16,9 @@ export const MODE_LABELS: Record<TimerMode, string> = {
 
 // Mode colors for background transitions
 export const MODE_COLORS: Record<TimerMode, string> = {
-    focus: '#FFF5F5',
-    shortBreak: '#F0FFF4',
-    longBreak: '#E8F4FF',
+    focus: '#FAF7F5',
+    shortBreak: '#F2F9F4',
+    longBreak: '#F0F6FA',
 };
 
 // Format seconds to MM:SS

@@ -7,8 +7,12 @@ import {
     POMODOROS_BEFORE_LONG_BREAK,
     TimerMode,
 } from '@/lib/constants';
+import { durationFor, nextAfterComplete, nextAfterSkip, secondsLeft } from '@/lib/timerLogic';
+import { useSessionStore } from './sessionStore';
+import { useTaskStore } from './taskStore';
+import { usePresetStore } from './presetStore';
 
-interface TimerSettings {
+export interface TimerSettings {
     focusDuration: number;
     shortBreakDuration: number;
     longBreakDuration: number;
@@ -20,13 +24,21 @@ interface TimerSettings {
     selectedSound: string;
 }
 
-interface TimerState {
+export interface TimerState {
     // Timer state
     timeRemaining: number;
     isRunning: boolean;
     mode: TimerMode;
     pomodoroCount: number;
-    totalPomodorosToday: number;
+    endsAt: number | null;
+    remainingMs: number;
+    sessionDuration: number;
+    lastCompletion: {
+        id: string;
+        mode: TimerMode;
+        at: number;
+        silent: boolean;
+    } | null;
 
     // Settings
     settings: TimerSettings;
@@ -36,104 +48,116 @@ interface TimerState {
     pause: () => void;
     reset: () => void;
     skip: () => void;
-    tick: () => void;
+    sync: (now?: number) => void;
     setMode: (mode: TimerMode) => void;
     updateSettings: (settings: Partial<TimerSettings>) => void;
-    completeSession: () => void;
+    finishSession: (endedAt: number, opts?: { silent?: boolean }) => void;
 }
 
-const getInitialDuration = (mode: TimerMode, settings: TimerSettings): number => {
-    switch (mode) {
-        case 'focus':
-            return settings.focusDuration;
-        case 'shortBreak':
-            return settings.shortBreakDuration;
-        case 'longBreak':
-            return settings.longBreakDuration;
-    }
+const defaultSettings: TimerSettings = {
+    focusDuration: DEFAULT_FOCUS_DURATION,
+    shortBreakDuration: DEFAULT_SHORT_BREAK,
+    longBreakDuration: DEFAULT_LONG_BREAK,
+    pomodorosBeforeLongBreak: POMODOROS_BEFORE_LONG_BREAK,
+    autoStartBreaks: false,
+    autoStartPomodoros: false,
+    soundEnabled: true,
+    soundVolume: 80,
+    selectedSound: 'digital-alarm-clock-2.mp3',
 };
 
 export const useTimerStore = create<TimerState>()(
     persist(
         (set, get) => ({
-            // Initial state
             timeRemaining: DEFAULT_FOCUS_DURATION,
             isRunning: false,
             mode: 'focus',
             pomodoroCount: 0,
-            totalPomodorosToday: 0,
+            endsAt: null,
+            remainingMs: DEFAULT_FOCUS_DURATION * 1000,
+            sessionDuration: DEFAULT_FOCUS_DURATION,
+            lastCompletion: null,
+            settings: defaultSettings,
 
-            // Settings
-            settings: {
-                focusDuration: DEFAULT_FOCUS_DURATION,
-                shortBreakDuration: DEFAULT_SHORT_BREAK,
-                longBreakDuration: DEFAULT_LONG_BREAK,
-                pomodorosBeforeLongBreak: POMODOROS_BEFORE_LONG_BREAK,
-                autoStartBreaks: false,
-                autoStartPomodoros: false,
-                soundEnabled: true,
-                soundVolume: 80,
-                selectedSound: 'digital-alarm-clock-2.mp3',
+            start: () => {
+                const state = get();
+                if (state.isRunning) return;
+                const now = Date.now();
+                const endsAt = now + state.remainingMs;
+                set({
+                    isRunning: true,
+                    endsAt,
+                    timeRemaining: secondsLeft(endsAt, now),
+                });
             },
 
-            // Actions
-            start: () => set({ isRunning: true }),
-
-            pause: () => set({ isRunning: false }),
+            pause: () => {
+                const state = get();
+                if (!state.isRunning) return;
+                const now = Date.now();
+                const remainingMs = state.endsAt ? Math.max(0, state.endsAt - now) : state.remainingMs;
+                set({
+                    isRunning: false,
+                    endsAt: null,
+                    remainingMs,
+                    timeRemaining: Math.ceil(remainingMs / 1000),
+                });
+            },
 
             reset: () => {
                 const { mode, settings } = get();
+                const durationSec = durationFor(mode, settings);
                 set({
-                    timeRemaining: getInitialDuration(mode, settings),
                     isRunning: false,
+                    endsAt: null,
+                    sessionDuration: durationSec,
+                    remainingMs: durationSec * 1000,
+                    timeRemaining: durationSec,
                 });
             },
 
             skip: () => {
                 const { mode, pomodoroCount, settings } = get();
-                let nextMode: TimerMode;
-                let newPomodoroCount = pomodoroCount;
-
-                if (mode === 'focus') {
-                    // After focus, go to break
-                    newPomodoroCount = pomodoroCount + 1;
-                    if (newPomodoroCount >= settings.pomodorosBeforeLongBreak) {
-                        nextMode = 'longBreak';
-                    } else {
-                        nextMode = 'shortBreak';
-                    }
-                } else {
-                    // After any break, go to focus
-                    nextMode = 'focus';
-                    if (mode === 'longBreak') {
-                        newPomodoroCount = 0; // Reset count after long break
-                    }
-                }
-
+                const next = nextAfterSkip(mode, pomodoroCount);
+                const nextDuration = durationFor(next.mode, settings);
                 set({
-                    mode: nextMode,
-                    timeRemaining: getInitialDuration(nextMode, settings),
+                    mode: next.mode,
+                    pomodoroCount: next.count,
                     isRunning: false,
-                    pomodoroCount: newPomodoroCount,
+                    endsAt: null,
+                    sessionDuration: nextDuration,
+                    remainingMs: nextDuration * 1000,
+                    timeRemaining: nextDuration,
                 });
             },
 
-            tick: () => {
-                const { timeRemaining } = get();
-                if (timeRemaining > 0) {
-                    set({ timeRemaining: timeRemaining - 1 });
+            sync: (now: number = Date.now()) => {
+                const state = get();
+                if (!state.isRunning || !state.endsAt) {
+                    return;
+                }
+
+                if (now >= state.endsAt) {
+                    const endedAt = state.endsAt;
+                    get().finishSession(endedAt, { silent: false });
                 } else {
-                    // Timer completed
-                    get().completeSession();
+                    set({
+                        timeRemaining: secondsLeft(state.endsAt, now),
+                        remainingMs: Math.max(0, state.endsAt - now),
+                    });
                 }
             },
 
             setMode: (mode: TimerMode) => {
                 const { settings } = get();
+                const durationSec = durationFor(mode, settings);
                 set({
                     mode,
-                    timeRemaining: getInitialDuration(mode, settings),
                     isRunning: false,
+                    endsAt: null,
+                    sessionDuration: durationSec,
+                    remainingMs: durationSec * 1000,
+                    timeRemaining: durationSec,
                 });
             },
 
@@ -141,60 +165,131 @@ export const useTimerStore = create<TimerState>()(
                 const { settings, mode, isRunning } = get();
                 const updatedSettings = { ...settings, ...newSettings };
 
-                // If not running, update the time remaining to match new settings
                 if (!isRunning) {
+                    const durationSec = durationFor(mode, updatedSettings);
                     set({
                         settings: updatedSettings,
-                        timeRemaining: getInitialDuration(mode, updatedSettings),
+                        sessionDuration: durationSec,
+                        remainingMs: durationSec * 1000,
+                        timeRemaining: durationSec,
                     });
                 } else {
                     set({ settings: updatedSettings });
                 }
             },
 
-            completeSession: () => {
-                const { mode, pomodoroCount, settings } = get();
-                let nextMode: TimerMode;
-                let newPomodoroCount = pomodoroCount;
-                let newTotalPomodorosToday = get().totalPomodorosToday;
+            finishSession: (endedAt: number, opts?: { silent?: boolean }) => {
+                const state = get();
+                const { mode, pomodoroCount, settings, sessionDuration } = state;
+                const silent = !!opts?.silent;
+
+                let loggedSessionId: string | undefined;
 
                 if (mode === 'focus') {
-                    // Completed a focus session
-                    newPomodoroCount = pomodoroCount + 1;
-                    newTotalPomodorosToday += 1;
+                    const activePresetId = usePresetStore.getState().activePresetId;
+                    const activeTaskId = useTaskStore.getState().activeTaskId;
 
-                    if (newPomodoroCount >= settings.pomodorosBeforeLongBreak) {
-                        nextMode = 'longBreak';
-                    } else {
-                        nextMode = 'shortBreak';
+                    loggedSessionId = useSessionStore.getState().logSession({
+                        type: 'focus',
+                        duration: sessionDuration,
+                        completedAt: endedAt,
+                        presetId: activePresetId || undefined,
+                    });
+
+                    if (activeTaskId) {
+                        useTaskStore.getState().incrementTaskPomodoro(activeTaskId);
                     }
+
+                    useSessionStore.getState().setPendingRating(loggedSessionId);
                 } else {
-                    // Completed a break
-                    nextMode = 'focus';
-                    if (mode === 'longBreak') {
-                        newPomodoroCount = 0;
+                    const activePresetId = usePresetStore.getState().activePresetId;
+                    loggedSessionId = useSessionStore.getState().logSession({
+                        type: mode,
+                        duration: sessionDuration,
+                        completedAt: endedAt,
+                        presetId: activePresetId || undefined,
+                    });
+                }
+
+                const next = nextAfterComplete(mode, pomodoroCount, settings.pomodorosBeforeLongBreak);
+                const nextDuration = durationFor(next.mode, settings);
+
+                const shouldAutoStart = !silent && (
+                    (next.mode === 'focus' && settings.autoStartPomodoros) ||
+                    (next.mode !== 'focus' && settings.autoStartBreaks)
+                );
+
+                const now = Date.now();
+                let nextEndsAt: number | null = null;
+                let nextRemainingMs = nextDuration * 1000;
+                let nextTimeRemaining = nextDuration;
+
+                if (shouldAutoStart) {
+                    nextEndsAt = endedAt + nextDuration * 1000;
+                    if (nextEndsAt > now) {
+                        nextRemainingMs = nextEndsAt - now;
+                        nextTimeRemaining = secondsLeft(nextEndsAt, now);
+                    } else {
+                        nextEndsAt = null;
+                        nextRemainingMs = 0;
+                        nextTimeRemaining = 0;
                     }
                 }
 
-                const shouldAutoStart =
-                    (nextMode === 'focus' && settings.autoStartPomodoros) ||
-                    (nextMode !== 'focus' && settings.autoStartBreaks);
-
                 set({
-                    mode: nextMode,
-                    timeRemaining: getInitialDuration(nextMode, settings),
-                    isRunning: shouldAutoStart,
-                    pomodoroCount: newPomodoroCount,
-                    totalPomodorosToday: newTotalPomodorosToday,
+                    mode: next.mode,
+                    pomodoroCount: next.count,
+                    sessionDuration: nextDuration,
+                    isRunning: shouldAutoStart && nextEndsAt !== null,
+                    endsAt: nextEndsAt,
+                    remainingMs: nextRemainingMs,
+                    timeRemaining: nextTimeRemaining,
+                    lastCompletion: {
+                        id: loggedSessionId || `complete-${Date.now()}`,
+                        mode,
+                        at: endedAt,
+                        silent,
+                    },
                 });
             },
         }),
         {
             name: 'pomodoro-timer-storage',
+            version: 1,
             partialize: (state) => ({
                 settings: state.settings,
-                totalPomodorosToday: state.totalPomodorosToday,
+                mode: state.mode,
+                pomodoroCount: state.pomodoroCount,
+                isRunning: state.isRunning,
+                endsAt: state.endsAt,
+                remainingMs: state.remainingMs,
+                sessionDuration: state.sessionDuration,
             }),
+            migrate: (persistedState: unknown, version: number) => {
+                if (version < 1 && persistedState && typeof persistedState === 'object') {
+                    const state = { ...(persistedState as Record<string, unknown>) };
+                    delete state.totalPomodorosToday;
+                    const rest = state as unknown as Partial<TimerState>;
+                    return {
+                        ...rest,
+                        sessionDuration: rest.sessionDuration || rest.settings?.focusDuration || DEFAULT_FOCUS_DURATION,
+                        remainingMs: rest.remainingMs || (rest.settings?.focusDuration || DEFAULT_FOCUS_DURATION) * 1000,
+                        endsAt: rest.endsAt || null,
+                    } as TimerState;
+                }
+                return persistedState as TimerState;
+            },
+            onRehydrateStorage: () => (state) => {
+                if (!state) return;
+                if (state.isRunning && state.endsAt) {
+                    const now = Date.now();
+                    if (now >= state.endsAt) {
+                        state.finishSession(state.endsAt, { silent: true });
+                    } else {
+                        state.sync(now);
+                    }
+                }
+            },
         }
     )
 );

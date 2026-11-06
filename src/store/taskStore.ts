@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { toLocalDateKey } from '@/lib/date';
 
 export interface Task {
     id: string;
@@ -7,7 +8,7 @@ export interface Task {
     estimatedPomodoros: number;
     actualPomodoros: number;
     status: 'pending' | 'in-progress' | 'completed';
-    date: string; // ISO date string (YYYY-MM-DD)
+    date: string; // ISO date string (YYYY-MM-DD) in local time
     createdAt: string;
     completedAt?: string;
 }
@@ -27,10 +28,6 @@ interface TaskState {
     getTodayTasks: () => Task[];
 }
 
-const getDateString = (date: Date = new Date()): string => {
-    return date.toISOString().split('T')[0];
-};
-
 export const useTaskStore = create<TaskState>()(
     persist(
         (set, get) => ({
@@ -38,14 +35,19 @@ export const useTaskStore = create<TaskState>()(
             activeTaskId: null,
 
             addTask: (title, estimatedPomodoros) => {
+                const now = new Date();
+                const id = typeof crypto !== 'undefined' && crypto.randomUUID
+                    ? crypto.randomUUID()
+                    : `task-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+
                 const newTask: Task = {
-                    id: `task-${Date.now()}`,
+                    id,
                     title,
                     estimatedPomodoros,
                     actualPomodoros: 0,
                     status: 'pending',
-                    date: getDateString(),
-                    createdAt: new Date().toISOString(),
+                    date: toLocalDateKey(now),
+                    createdAt: now.toISOString(),
                 };
                 set((state) => ({
                     tasks: [...state.tasks, newTask],
@@ -68,9 +70,11 @@ export const useTaskStore = create<TaskState>()(
             },
 
             setActiveTask: (id) => {
-                const task = id ? get().tasks.find((t) => t.id === id) : null;
-                if (task && task.status === 'pending') {
-                    get().updateTask(id!, { status: 'in-progress' });
+                if (id) {
+                    const task = get().tasks.find((t) => t.id === id);
+                    if (task && task.status === 'pending') {
+                        get().updateTask(id, { status: 'in-progress' });
+                    }
                 }
                 set({ activeTaskId: id });
             },
@@ -101,11 +105,26 @@ export const useTaskStore = create<TaskState>()(
             },
 
             getTodayTasks: () => {
-                return get().getTasksByDate(getDateString());
+                return get().getTasksByDate(toLocalDateKey());
             },
         }),
         {
             name: 'pomodoro-tasks-storage',
+            version: 1,
+            migrate: (persistedState: unknown, version: number) => {
+                const state = persistedState as (Partial<TaskState> & { tasks?: Array<Task & { createdAt?: string }> }) | undefined;
+                if (version < 1 && state?.tasks) {
+                    const migratedTasks = state.tasks.map((task) => ({
+                        ...task,
+                        date: task.createdAt ? toLocalDateKey(new Date(task.createdAt)) : task.date,
+                    }));
+                    return {
+                        ...state,
+                        tasks: migratedTasks,
+                    } as TaskState;
+                }
+                return persistedState as TaskState;
+            },
         }
     )
 );

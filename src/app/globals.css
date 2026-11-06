@@ -13,35 +13,40 @@ html::-webkit-scrollbar {
   /* Chrome, Safari, Opera */
 }
 
-/* ================================
+/* =========================================
    POMODORO TIMER - DESIGN SYSTEM
-   Tomato Pink Color Palette
-   ================================ */
+   Minimalist & Refined Palette
+   Warm Cream & Refined Tomato/Vermilion
+   ========================================= */
 
 :root {
-  /* Primary Colors - Tomato Pink */
-  --primary: #FF6B6B;
-  --primary-light: #FF8787;
-  --primary-lighter: #FFA5A5;
-  --primary-dark: #E85555;
+  /* Primary Accent - Refined Tomato / Vermilion */
+  --primary: #FF6363;
+  --primary-light: #FF8585;
+  --primary-lighter: #FFD6D6;
+  --primary-dark: #E04848;
 
-  /* Background */
-  --background: #FFF5F5;
+  /* Backgrounds */
+  --background: #FAF7F5;
   --background-card: #FFFFFF;
 
-  /* Text */
-  --text-dark: #2C2C2C;
-  --text-light: #6B6B6B;
-  --text-muted: #9B9B9B;
+  /* Typography - Warm Charcoal & Stone */
+  --text-dark: #1C1917;
+  --text-light: #57534E;
+  --text-muted: #A8A29E;
+
+  /* Borders & Subtle Surfaces */
+  --border-subtle: rgba(28, 25, 23, 0.08);
+  --border-muted: rgba(28, 25, 23, 0.14);
 
   /* Status Colors */
-  --success: #51CF66;
-  --warning: #FFD43B;
+  --success: #16A34A;
+  --warning: #D97706;
 
-  /* Focus Mode Colors */
-  --focus-bg: #FFF5F5;
-  --break-bg: #F0FFF4;
-  --long-break-bg: #E8F4FF;
+  /* Focus & Break Backgrounds */
+  --focus-bg: #FAF7F5;
+  --break-bg: #F2F9F4;
+  --long-break-bg: #F0F6FA;
 }
 
 @theme inline {
@@ -62,14 +67,16 @@ body {
   min-height: 100vh;
 }
 
-/* Timer Display Styles */
+/* Timer Display Styles with Tabular Numbers for rock-solid stability */
 .timer-display {
   font-family: var(--font-mono), monospace;
-  font-size: clamp(3rem, 10vw, 5rem);
+  font-size: clamp(3.25rem, 11vw, 5.5rem);
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
   line-height: 1;
   color: var(--text-dark);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
 }
 
 @keyframes waveOscillate {
@@ -84,43 +91,51 @@ body {
 
 /* Button Base Styles */
 .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 0.75rem 1.5rem;
-  border-radius: 12px;
+  border-radius: 9999px;
   font-weight: 500;
-  font-size: 1rem;
-  transition: all 0.2s ease;
+  font-size: 0.95rem;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
-  border: none;
+  border: 1px solid transparent;
   outline: none;
 }
 
 .btn-primary {
   background: var(--primary);
-  color: white;
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(255, 99, 99, 0.25);
 }
 
 .btn-primary:hover {
   background: var(--primary-dark);
-  transform: scale(1.02);
+  box-shadow: 0 4px 14px rgba(255, 99, 99, 0.35);
+  transform: translateY(-1px);
 }
 
 .btn-primary:active {
-  transform: scale(0.98);
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(255, 99, 99, 0.2);
 }
 
 .btn-secondary {
-  background: transparent;
+  background: #FFFFFF;
   color: var(--text-dark);
-  border: 2px solid var(--primary-lighter);
+  border: 1px solid var(--border-subtle);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .btn-secondary:hover {
-  background: var(--primary-lighter);
-  transform: scale(1.02);
+  background: #F5F3EF;
+  border-color: var(--border-muted);
+  transform: translateY(-1px);
 }
 
 .btn-secondary:active {
-  transform: scale(0.98);
+  transform: translateY(0);
 }
 
 /* Mode Indicator */
@@ -142,133 +157,124 @@ body {
 }
 
 .progress-ring__circle {
-  transition: stroke-dashoffset 0.5s ease;
+  transition: stroke-dashoffset 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Card Styles */
+/* Refined Minimalist Card Styles */
 .card {
   background: var(--background-card);
-  border-radius: 16px;
+  border-radius: 20px;
   padding: 1.5rem;
-  box-shadow: 0 4px 20px rgba(255, 107, 107, 0.1);
+  border: 1px solid var(--border-subtle);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(28, 25, 23, 0.03);
 }
 
-/* Animations */
-@keyframes pulse-glow {
-
+/* Active Timer Subtle Glow */
+@keyframes refined-glow {
   0%,
   100% {
-    box-shadow: 0 0 20px rgba(255, 107, 107, 0.3);
+    box-shadow: 0 0 0 0 rgba(255, 99, 99, 0.2);
   }
-
   50% {
-    box-shadow: 0 0 40px rgba(255, 107, 107, 0.5);
+    box-shadow: 0 0 24px 4px rgba(255, 99, 99, 0.18);
   }
 }
 
 .timer-active {
-  animation: pulse-glow 2s ease-in-out infinite;
+  animation: refined-glow 2.5s ease-in-out infinite;
 }
 
-/* Force tomato-pink accent on all inputs */
+/* Slider and Inputs with Refined Minimalist Theme */
 input[type="range"] {
-  accent-color: #FF6B6B !important;
+  accent-color: var(--primary) !important;
   -webkit-appearance: none;
   appearance: none;
   background: transparent;
   cursor: pointer;
-  height: 8px;
+  height: 6px;
 }
 
 /* Slider track - Chrome/Safari/Edge */
 input[type="range"]::-webkit-slider-runnable-track {
-  background: #FFA5A5;
-  height: 8px;
-  border-radius: 4px;
+  background: #F0EDE8;
+  height: 6px;
+  border-radius: 9999px;
 }
 
-/* Slider track when focused - Chrome/Safari/Edge */
 input[type="range"]:focus::-webkit-slider-runnable-track {
-  background: #FF8787;
+  background: #E8E3DC;
 }
 
 /* Slider thumb - Chrome/Safari/Edge */
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  background: #FF6B6B;
-  height: 20px;
-  width: 20px;
+  background: var(--primary);
+  height: 18px;
+  width: 18px;
   border-radius: 50%;
   margin-top: -6px;
-  box-shadow: 0 2px 4px rgba(255, 107, 107, 0.3);
+  box-shadow: 0 2px 6px rgba(255, 99, 99, 0.35);
+  transition: transform 0.15s ease, background-color 0.15s ease;
 }
 
 input[type="range"]::-webkit-slider-thumb:hover {
-  background: #E85555;
+  background: var(--primary-dark);
+  transform: scale(1.15);
 }
 
 /* Slider track - Firefox */
 input[type="range"]::-moz-range-track {
-  background: #FFA5A5;
-  height: 8px;
-  border-radius: 4px;
+  background: #F0EDE8;
+  height: 6px;
+  border-radius: 9999px;
 }
 
-input[type="range"]:focus::-moz-range-track {
-  background: #FF8787;
-}
-
-/* Slider thumb - Firefox */
 input[type="range"]::-moz-range-thumb {
-  background: #FF6B6B;
-  height: 20px;
-  width: 20px;
+  background: var(--primary);
+  height: 18px;
+  width: 18px;
   border-radius: 50%;
   border: none;
-  box-shadow: 0 2px 4px rgba(255, 107, 107, 0.3);
+  box-shadow: 0 2px 6px rgba(255, 99, 99, 0.35);
+  transition: transform 0.15s ease, background-color 0.15s ease;
 }
 
 input[type="range"]::-moz-range-thumb:hover {
-  background: #E85555;
+  background: var(--primary-dark);
+  transform: scale(1.15);
 }
 
 input[type="number"],
 input[type="text"] {
-  border-color: #FFA5A5;
+  border: 1px solid var(--border-subtle);
+  background: #FFFFFF;
 }
 
 input[type="number"]:focus,
 input[type="text"]:focus {
-  border-color: #FF6B6B;
+  border-color: var(--primary);
   outline: none;
-  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.2);
-}
-
-/* Override all browser default focus outlines to tomato pink */
-*:focus {
-  outline-color: #FF6B6B;
+  box-shadow: 0 0 0 3px rgba(255, 99, 99, 0.15);
 }
 
 *:focus-visible {
-  outline: 2px solid #FF6B6B;
+  outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
 
-button:focus,
-input:focus,
-select:focus,
-textarea:focus {
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.3);
+  box-shadow: 0 0 0 3px rgba(255, 99, 99, 0.2);
 }
 
-/* Remove default tap highlight on mobile */
 * {
-  -webkit-tap-highlight-color: rgba(255, 107, 107, 0.2);
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* Remove number input spinners */
 .no-spinner::-webkit-outer-spin-button,
 .no-spinner::-webkit-inner-spin-button {
   -webkit-appearance: none;

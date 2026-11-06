@@ -6,7 +6,7 @@ import { useTaskStore } from '@/store/taskStore';
 
 export function AddTaskForm() {
     const [title, setTitle] = useState('');
-    const [estimated, setEstimated] = useState(1);
+    const [estimated, setEstimated] = useState(2);
     const { addTask } = useTaskStore();
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -15,80 +15,50 @@ export function AddTaskForm() {
 
         addTask(title.trim(), estimated);
         setTitle('');
-        setEstimated(1);
+        setEstimated(2);
     };
 
     return (
-        <form onSubmit={handleSubmit} className="card mb-6">
-            <div className="flex gap-3 items-end">
-                {/* Title input */}
-                <div className="flex-1">
-                    <label
-                        className="block text-sm font-medium mb-2"
-                        style={{ color: 'var(--text-light)' }}
-                    >
-                        New Task
-                    </label>
-                    <input
-                        type="text"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        placeholder="What are you working on?"
-                        className="w-full px-4 py-2 rounded-lg border-2 outline-none transition-colors"
-                        style={{
-                            borderColor: 'var(--primary-lighter)',
-                            backgroundColor: 'white',
-                        }}
-                        maxLength={100}
-                    />
-                </div>
-
-                {/* Estimated pomodoros */}
-                <div className="w-24">
-                    <label
-                        className="block text-sm font-medium mb-2"
-                        style={{ color: 'var(--text-light)' }}
-                    >
-                        Est. 🍅
-                    </label>
-                    <input
-                        type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        value={estimated}
-                        onChange={(e) => {
-                            const val = e.target.value;
-                            if (val === '') {
-                                setEstimated(0); // Temporary state for empty input
-                                return;
-                            }
-                            const num = parseInt(val);
-                            if (!isNaN(num)) {
-                                // Clamp between 1 and 20
-                                setEstimated(Math.min(Math.max(1, num), 20));
-                            }
-                        }}
-                        onBlur={() => {
-                            // Ensure valid value on blur
-                            if (!estimated || estimated < 1) setEstimated(1);
-                        }}
-                        className="w-full px-3 py-2 rounded-lg border-2 outline-none text-center"
-                        style={{
-                            borderColor: 'var(--primary-lighter)',
-                            backgroundColor: 'white',
-                        }}
-                    />
-                </div>
-
-                {/* Submit button */}
+        <form onSubmit={handleSubmit} className="card p-4 sm:p-5 mb-6 space-y-3.5">
+            <div className="flex items-center gap-2">
+                <input
+                    type="text"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="What are you focusing on today?"
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-stone-200/80 bg-stone-50/50 focus:bg-white text-sm text-stone-900 placeholder:text-stone-400 outline-none focus:border-[#FF6363] focus:ring-1 focus:ring-[#FF6363]/25 transition-all"
+                    maxLength={100}
+                />
                 <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     type="submit"
-                    className="btn btn-primary"
+                    disabled={!title.trim()}
+                    className="px-5 py-2.5 rounded-xl bg-[#FF6363] hover:bg-[#E04848] disabled:opacity-50 text-white font-medium text-xs sm:text-sm shadow-xs transition-colors flex-shrink-0"
                 >
-                    Add
+                    Add Task
                 </motion.button>
+            </div>
+
+            {/* Quick estimate selector */}
+            <div className="flex items-center justify-between text-xs text-stone-500 pt-1">
+                <span>Estimated Sessions:</span>
+                <div className="flex items-center gap-1.5">
+                    {[1, 2, 3, 4, 5].map((count) => (
+                        <button
+                            key={count}
+                            type="button"
+                            onClick={() => setEstimated(count)}
+                            className={`px-2.5 py-1 rounded-lg font-mono text-xs transition-all ${
+                                estimated === count
+                                    ? 'bg-stone-900 text-white shadow-xs'
+                                    : 'bg-stone-100 text-stone-600 hover:bg-stone-200/70'
+                            }`}
+                        >
+                            {count} {count === 1 ? 'session' : 'sessions'}
+                        </button>
+                    ))}
+                </div>
             </div>
         </form>
     );

@@ -27,21 +27,20 @@ export function SessionRatingModal({ isOpen, onClose, onRate }: SessionRatingMod
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
-                    style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/50 backdrop-blur-sm"
                     onClick={onClose}
                 >
                     <motion.div
-                        initial={{ scale: 0.9, opacity: 0 }}
+                        initial={{ scale: 0.95, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0.9, opacity: 0 }}
-                        className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl"
+                        exit={{ scale: 0.95, opacity: 0 }}
+                        className="bg-white rounded-2xl p-6 max-w-sm w-full border border-stone-200/80 shadow-2xl"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <h3 className="text-lg font-semibold text-center mb-2" style={{ color: 'var(--text-dark)' }}>
-                            How was your focus? 🎯
+                        <h3 className="text-lg font-semibold text-center mb-1 text-stone-900">
+                            How was your focus?
                         </h3>
-                        <p className="text-sm text-center mb-4" style={{ color: 'var(--text-muted)' }}>
+                        <p className="text-xs text-center mb-5 text-stone-500">
                             Rate this session to track your productivity
                         </p>
 
@@ -50,17 +49,20 @@ export function SessionRatingModal({ isOpen, onClose, onRate }: SessionRatingMod
                             {[1, 2, 3, 4, 5].map((star) => (
                                 <motion.button
                                     key={star}
-                                    whileHover={{ scale: 1.2 }}
+                                    whileHover={{ scale: 1.15 }}
                                     whileTap={{ scale: 0.9 }}
                                     onMouseEnter={() => setHoveredRating(star)}
                                     onMouseLeave={() => setHoveredRating(0)}
                                     onClick={() => setSelectedRating(star)}
-                                    className="text-3xl transition-colors"
+                                    className="p-1 transition-colors"
+                                    aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
                                     style={{
-                                        color: star <= (hoveredRating || selectedRating) ? '#FFD700' : '#E5E7EB',
+                                        color: star <= (hoveredRating || selectedRating) ? '#F59E0B' : '#E7E5E4',
                                     }}
                                 >
-                                    ★
+                                    <svg className="w-7 h-7" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                    </svg>
                                 </motion.button>
                             ))}
                         </div>
@@ -69,8 +71,7 @@ export function SessionRatingModal({ isOpen, onClose, onRate }: SessionRatingMod
                         <div className="flex gap-3">
                             <button
                                 onClick={onClose}
-                                className="flex-1 py-2 rounded-xl text-sm font-medium"
-                                style={{ backgroundColor: '#F3F4F6', color: 'var(--text-muted)' }}
+                                className="flex-1 py-2 rounded-xl text-sm font-medium bg-stone-100 hover:bg-stone-200 text-stone-600 transition-colors"
                             >
                                 Skip
                             </button>
@@ -78,8 +79,8 @@ export function SessionRatingModal({ isOpen, onClose, onRate }: SessionRatingMod
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                                 onClick={handleSubmit}
-                                className="flex-1 py-2 rounded-xl text-sm font-medium text-white"
-                                style={{ backgroundColor: selectedRating > 0 ? '#FF6B6B' : '#D1D5DB' }}
+                                className="flex-1 py-2 rounded-xl text-sm font-medium text-white transition-colors"
+                                style={{ backgroundColor: selectedRating > 0 ? '#FF6363' : '#D6D3D1' }}
                                 disabled={selectedRating === 0}
                             >
                                 Save

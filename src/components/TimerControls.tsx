@@ -12,7 +12,7 @@ export function TimerControls() {
     const { isRunning, start, pause, reset, skip, mode } = useTimerStore();
 
     return (
-        <div className="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-4 mt-4 md:mt-8">
+        <div className="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-4 mt-3 md:mt-6">
             {/* Start/Pause Button - Always prominent */}
             <motion.button
                 variants={buttonVariants}
@@ -45,7 +45,7 @@ export function TimerControls() {
                     onClick={skip}
                     className="btn btn-secondary text-sm md:text-base"
                 >
-                    {mode === 'focus' ? 'Skip Break' : 'Skip Focus'}
+                    {mode === 'focus' ? 'Skip to Break' : 'Skip Break'}
                 </motion.button>
             </div>
         </div>

@@ -1,26 +1,22 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePresetStore, Preset } from '@/store/presetStore';
 import { PresetCard } from '@/components/PresetCard';
 import { PresetModal } from '@/components/PresetModal';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { useMounted } from '@/hooks/useMounted';
 
 export default function PresetsPage() {
     const { presets, addPreset, updatePreset, deletePreset } = usePresetStore();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingPreset, setEditingPreset] = useState<Preset | null>(null);
-    const [mounted, setMounted] = useState(false);
+    const mounted = useMounted();
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [selectionMode, setSelectionMode] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    // Only custom presets can be selected/deleted
     const customPresets = presets.filter((p) => !p.isDefault);
 
     const handleAddPreset = (presetData: Omit<Preset, 'id'>) => {
@@ -81,53 +77,52 @@ export default function PresetsPage() {
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className="min-h-screen p-4 md:p-6 pb-24 md:pb-6"
+            transition={{ duration: 0.25 }}
+            className="min-h-screen p-4 sm:p-6 pb-28 md:pb-16"
             style={{ backgroundColor: 'var(--background)' }}
         >
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-4xl mx-auto space-y-6">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-6 md:mb-8">
-                    <h1 className="text-2xl md:text-3xl font-bold" style={{ color: 'var(--text-dark)' }}>
-                        Timer Presets
-                    </h1>
-                    <div className="flex gap-2">
+                <div className="flex items-center justify-between pt-2">
+                    <div>
+                        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-stone-900">
+                            Focus Cadences
+                        </h1>
+                        <p className="text-xs sm:text-sm text-stone-500 mt-1">
+                            Choose scientifically-backed work rhythms or configure custom intervals.
+                        </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
                         {!selectionMode ? (
                             <>
                                 {customPresets.length > 0 && (
-                                    <motion.button
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
+                                    <button
                                         onClick={() => setSelectionMode(true)}
-                                        className="px-3 py-2 rounded-xl text-sm font-medium"
-                                        style={{ backgroundColor: 'var(--primary-lighter)', color: 'var(--text-dark)' }}
+                                        className="px-3 py-2 rounded-xl text-xs font-medium bg-stone-100 hover:bg-stone-200 text-stone-700 transition-colors"
                                     >
                                         Select
-                                    </motion.button>
+                                    </button>
                                 )}
                                 <motion.button
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
                                     onClick={() => setIsModalOpen(true)}
-                                    className="btn btn-primary text-sm md:text-base"
+                                    className="px-4 py-2 rounded-xl text-xs sm:text-sm font-medium bg-[#FF6363] hover:bg-[#E04848] text-white shadow-xs transition-colors flex items-center gap-1.5"
                                 >
-                                    Create
+                                    <span>+</span>
+                                    <span>New Cadence</span>
                                 </motion.button>
                             </>
                         ) : (
-                            <>
-                                <motion.button
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    onClick={exitSelectionMode}
-                                    className="px-3 py-2 rounded-xl text-sm font-medium"
-                                    style={{ backgroundColor: '#E5E7EB', color: 'var(--text-dark)' }}
-                                >
-                                    Cancel
-                                </motion.button>
-                            </>
+                            <button
+                                onClick={exitSelectionMode}
+                                className="px-3.5 py-2 rounded-xl text-xs font-medium bg-stone-200 hover:bg-stone-300 text-stone-700 transition-colors"
+                            >
+                                Done
+                            </button>
                         )}
                     </div>
                 </div>
@@ -139,91 +134,63 @@ export default function PresetsPage() {
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="mb-4 p-3 rounded-xl flex items-center justify-between"
-                            style={{ backgroundColor: 'rgba(255, 107, 107, 0.1)' }}
+                            className="p-3 rounded-xl flex items-center justify-between bg-stone-100 border border-stone-200 text-xs"
                         >
                             <div className="flex items-center gap-3">
-                                <span className="text-sm font-medium" style={{ color: 'var(--text-dark)' }}>
+                                <span className="font-medium text-stone-800">
                                     {selectedIds.size} selected
                                 </span>
                                 <button
                                     onClick={selectedIds.size === customPresets.length ? deselectAll : selectAll}
-                                    className="text-sm font-medium underline"
-                                    style={{ color: 'var(--primary)' }}
+                                    className="underline text-[#FF6363]"
                                 >
                                     {selectedIds.size === customPresets.length ? 'Deselect All' : 'Select All'}
                                 </button>
                             </div>
                             {selectedIds.size > 0 && (
-                                <motion.button
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
+                                <button
                                     onClick={() => setShowDeleteConfirm(true)}
-                                    className="px-3 py-1.5 rounded-lg text-sm font-medium"
-                                    style={{ backgroundColor: '#FEE2E2', color: '#DC2626' }}
+                                    className="px-3 py-1 rounded-lg font-medium bg-rose-600 text-white hover:bg-rose-700 transition-colors"
                                 >
                                     Delete ({selectedIds.size})
-                                </motion.button>
+                                </button>
                             )}
                         </motion.div>
                     )}
                 </AnimatePresence>
 
-                {/* Description */}
-                {!selectionMode && (
-                    <p className="mb-4 md:mb-6 text-xs md:text-sm" style={{ color: 'var(--text-light)' }}>
-                        Click on a preset to apply it. Create custom presets for different work styles.
-                    </p>
-                )}
-
                 {/* Presets Grid */}
-                <motion.div
-                    initial="hidden"
-                    animate="visible"
-                    variants={{
-                        visible: { transition: { staggerChildren: 0.05 } },
-                    }}
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4"
-                >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {presets.map((preset) => (
-                        <motion.div
-                            key={preset.id}
-                            variants={{
-                                hidden: { opacity: 0, y: 20 },
-                                visible: { opacity: 1, y: 0 },
-                            }}
-                            className="relative"
-                        >
-                            {/* Selection checkbox for custom presets */}
+                        <div key={preset.id} className="relative">
                             {selectionMode && !preset.isDefault && (
-                                <motion.button
-                                    initial={{ scale: 0 }}
-                                    animate={{ scale: 1 }}
-                                    className="absolute top-3 left-3 z-10 w-6 h-6 rounded-full flex items-center justify-center"
-                                    style={{
-                                        backgroundColor: selectedIds.has(preset.id) ? '#FF6B6B' : 'white',
-                                        border: selectedIds.has(preset.id) ? 'none' : '2px solid #D1D5DB',
-                                    }}
+                                <button
+                                    className={`absolute top-3 left-3 z-10 w-6 h-6 rounded-full flex items-center justify-center transition-all ${
+                                        selectedIds.has(preset.id)
+                                            ? 'bg-[#FF6363] text-white shadow-xs'
+                                            : 'bg-white border-2 border-stone-300'
+                                    }`}
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         toggleSelection(preset.id);
                                     }}
+                                    aria-label="Select preset"
                                 >
                                     {selectedIds.has(preset.id) && (
-                                        <svg width="14" height="14" fill="none" stroke="white" strokeWidth="2">
-                                            <path d="M2 7l4 4 6-8" />
+                                        <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                                            <polyline points="20 6 9 17 4 12" />
                                         </svg>
                                     )}
-                                </motion.button>
+                                </button>
                             )}
                             <PresetCard
                                 preset={preset}
                                 onEdit={handleEdit}
                                 onDelete={handleDelete}
                             />
-                        </motion.div>
+                        </div>
                     ))}
-                </motion.div>
+                </div>
             </div>
 
             {/* Modal */}

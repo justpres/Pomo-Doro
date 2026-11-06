@@ -1,104 +1,140 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import Link from 'next/link';
 import { useSessionStore } from '@/store/sessionStore';
 import { StatsCard } from '@/components/StatsCard';
 import { CalendarHeatmap } from '@/components/CalendarHeatmap';
+import { useMounted } from '@/hooks/useMounted';
 
 export default function StatsPage() {
     const { getTodayStats, getStreak, getAverageQuality, getMostProductiveHour, sessions } = useSessionStore();
-    const [mounted, setMounted] = useState(false);
-    const [todayStats, setTodayStats] = useState({ pomodoros: 0, focusMinutes: 0 });
-    const [streak, setStreak] = useState(0);
-    const [totalPomodoros, setTotalPomodoros] = useState(0);
-    const [avgQuality, setAvgQuality] = useState({ value: 0, count: 0 });
-    const [bestHour, setBestHour] = useState<{ hour: number; count: number } | null>(null);
+    const mounted = useMounted();
 
-    useEffect(() => {
-        setMounted(true);
-        setTodayStats(getTodayStats());
-        setStreak(getStreak());
-        setTotalPomodoros(sessions.filter((s) => s.type === 'focus').length);
-        setAvgQuality(getAverageQuality());
-        setBestHour(getMostProductiveHour());
-    }, [getTodayStats, getStreak, getAverageQuality, getMostProductiveHour, sessions]);
+    const todayStats = useMemo(() => (mounted ? getTodayStats() : { pomodoros: 0, focusMinutes: 0 }), [mounted, getTodayStats]);
+    const streak = useMemo(() => (mounted ? getStreak() : 0), [mounted, getStreak]);
+    const totalPomodoros = useMemo(() => (mounted ? sessions.filter((s) => s.type === 'focus').length : 0), [mounted, sessions]);
+    const avgQuality = useMemo(() => (mounted ? getAverageQuality() : { value: 0, count: 0 }), [mounted, getAverageQuality]);
+    const bestHour = useMemo(() => (mounted ? getMostProductiveHour() : null), [mounted, getMostProductiveHour]);
 
     if (!mounted) return null;
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className="min-h-screen p-6"
+            transition={{ duration: 0.25 }}
+            className="min-h-screen p-4 sm:p-6 pb-28 md:pb-16"
             style={{ backgroundColor: 'var(--background)' }}
         >
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-4xl mx-auto space-y-6">
                 {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold" style={{ color: 'var(--text-dark)' }}>
-                        Statistics
+                <div className="pt-2">
+                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-stone-900">
+                        Productivity Insights
                     </h1>
+                    <p className="text-xs sm:text-sm text-stone-500 mt-1">
+                        Track your daily focus streaks, session counts, and work distribution.
+                    </p>
                 </div>
 
-                {/* Today's Stats */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                {/* Metrics Summary Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
                     <StatsCard
-                        title="Today's Pomodoros"
-                        value={`${todayStats.pomodoros} 🍅`}
+                        title="Today's Sessions"
+                        value={todayStats.pomodoros}
+                        icon={
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#FF6363]">
+                                <circle cx="12" cy="12" r="10" />
+                                <polyline points="12 6 12 12 16 14" />
+                            </svg>
+                        }
+                        color="#FF6363"
                     />
                     <StatsCard
-                        title="Focus Time Today"
+                        title="Focus Minutes Today"
                         value={`${todayStats.focusMinutes}m`}
-                        color="var(--text-dark)"
+                        icon={
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-stone-500">
+                                <circle cx="12" cy="12" r="10" />
+                                <polyline points="12 6 12 12 14 10" />
+                            </svg>
+                        }
                     />
                     <StatsCard
-                        title="Current Streak"
+                        title="Daily Streak"
                         value={`${streak} days`}
-                        color="var(--success)"
+                        icon={
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500">
+                                <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
+                            </svg>
+                        }
+                        color="#F59E0B"
                     />
                     <StatsCard
-                        title="Total Pomodoros"
+                        title="All-Time Sessions"
                         value={totalPomodoros}
-                        color="var(--primary-dark)"
+                        icon={
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-stone-500">
+                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                            </svg>
+                        }
+                    />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                    <StatsCard
+                        title="Avg Focus Rating"
+                        value={avgQuality.value > 0 ? `${avgQuality.value} / 5` : 'N/A'}
+                        subtitle={avgQuality.count > 0 ? `Based on ${avgQuality.count} rated sessions` : 'Rate sessions on completion'}
+                        icon={
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-400">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                            </svg>
+                        }
+                        color="#F59E0B"
                     />
                     <StatsCard
-                        title="Avg Focus Quality"
-                        value={avgQuality.value > 0 ? `${avgQuality.value} ★` : 'N/A'}
-                        subtitle={avgQuality.count > 0 ? `Based on ${avgQuality.count} sessions` : 'No ratings yet'}
-                        color="#FFD700"
-                        className="col-span-2"
-                    />
-                    <StatsCard
-                        title="Best Focus Time"
-                        value={bestHour ? `${bestHour.hour}:00 - ${bestHour.hour + 1}:00` : 'N/A'}
-                        subtitle={bestHour ? `${bestHour.count} sessions in this hour` : 'Need more data'}
-                        color="#4ECDC4"
-                        className="col-span-2"
+                        title="Peak Focus Window"
+                        value={bestHour ? `${bestHour.hour}:00 – ${bestHour.hour + 1}:00` : 'Calibrating...'}
+                        subtitle={bestHour ? `${bestHour.count} sessions completed in this window` : 'Complete more sessions to unlock'}
+                        icon={
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500">
+                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                            </svg>
+                        }
+                        color="#10B981"
                     />
                 </div>
 
                 {/* Calendar Heatmap */}
                 <CalendarHeatmap days={35} />
 
-                {/* Weekly Summary */}
-                <div className="card mt-6">
-                    <h3
-                        className="text-lg font-semibold mb-4"
-                        style={{ color: 'var(--text-dark)' }}
-                    >
-                        This Week
-                    </h3>
+                {/* Weekly Distribution Chart */}
+                <div className="card p-5 space-y-4">
+                    <div>
+                        <h3 className="font-semibold text-sm text-stone-900">
+                            Weekly Focus Distribution
+                        </h3>
+                        <p className="text-xs text-stone-500 mt-0.5">
+                            Number of focus sessions completed per day this week.
+                        </p>
+                    </div>
                     <WeeklySummary />
                 </div>
 
-                {/* Weekly Goal */}
-                <div className="card mt-6">
-                    <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text-dark)' }}>
-                        Weekly Goal (20h)
-                    </h3>
+                {/* Weekly Goal Progress */}
+                <div className="card p-5 space-y-3">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h3 className="font-semibold text-sm text-stone-900">
+                                Weekly Focus Target (20h)
+                            </h3>
+                            <p className="text-xs text-stone-500 mt-0.5">
+                                Steady deep work target for sustainable productivity.
+                            </p>
+                        </div>
+                    </div>
                     <WeeklyGoal />
                 </div>
             </div>
@@ -108,16 +144,15 @@ export default function StatsPage() {
 
 function WeeklySummary() {
     const { sessions } = useSessionStore();
-    const [weekData, setWeekData] = useState<{ day: string; count: number }[]>([]);
 
-    useEffect(() => {
+    const weekData = useMemo(() => {
         const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         const today = new Date();
         const startOfWeek = new Date(today);
         startOfWeek.setDate(today.getDate() - today.getDay());
         startOfWeek.setHours(0, 0, 0, 0);
 
-        const data = days.map((day, index) => {
+        return days.map((day, index) => {
             const date = new Date(startOfWeek);
             date.setDate(startOfWeek.getDate() + index);
             const dateStr = date.toDateString();
@@ -129,83 +164,76 @@ function WeeklySummary() {
 
             return { day, count };
         });
-
-        setWeekData(data);
     }, [sessions]);
 
     const maxCount = Math.max(...weekData.map((d) => d.count), 1);
 
     return (
-        <div className="flex items-end justify-between gap-2 h-32">
-            {weekData.map(({ day, count }) => (
-                <div key={day} className="flex-1 flex flex-col items-center">
-                    <motion.div
-                        initial={{ scaleY: 0 }}
-                        animate={{ scaleY: 1 }}
-                        transition={{ duration: 0.5, ease: 'easeOut' }}
-                        className="w-full rounded-t-lg origin-bottom"
-                        style={{
-                            backgroundColor: count > 0 ? 'var(--primary)' : 'var(--primary-lighter)',
-                            height: `${Math.max((count / maxCount) * 80, 8)}px`,
-                        }}
-                    />
-                    <span
-                        className="text-xs mt-2"
-                        style={{ color: 'var(--text-muted)' }}
-                    >
-                        {day}
-                    </span>
-                    <span
-                        className="text-xs font-medium"
-                        style={{ color: 'var(--text-light)' }}
-                    >
-                        {count}
-                    </span>
-                </div>
-            ))}
+        <div className="flex items-end justify-between gap-2 h-36 pt-4">
+            {weekData.map(({ day, count }) => {
+                const ratio = Math.max((count / maxCount) * 100, count > 0 ? 12 : 4);
+                return (
+                    <div key={day} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+                        <span className="font-mono text-[11px] font-semibold text-stone-700 tabular-nums">
+                            {count > 0 ? count : ''}
+                        </span>
+                        <div className="w-full max-w-[36px] bg-stone-100 rounded-lg overflow-hidden flex flex-col justify-end h-24 p-0.5">
+                            <motion.div
+                                initial={{ height: 0 }}
+                                animate={{ height: `${ratio}%` }}
+                                transition={{ duration: 0.4, ease: 'easeOut' }}
+                                className={`w-full rounded-md transition-colors ${
+                                    count > 0 ? 'bg-[#FF6363]' : 'bg-transparent'
+                                }`}
+                            />
+                        </div>
+                        <span className="text-[11px] font-medium text-stone-500">
+                            {day}
+                        </span>
+                    </div>
+                );
+            })}
         </div>
     );
 }
 
 function WeeklyGoal() {
     const { sessions } = useSessionStore();
-    const [weeklyHours, setWeeklyHours] = useState(0);
     const goalHours = 20;
 
-    useEffect(() => {
+    const weeklyHours = useMemo(() => {
         const today = new Date();
         const startOfWeek = new Date(today);
         startOfWeek.setDate(today.getDate() - today.getDay());
         startOfWeek.setHours(0, 0, 0, 0);
 
-        const thisWeekSessions = sessions.filter(s => {
+        const thisWeekSessions = sessions.filter((s) => {
             const date = new Date(s.completedAt);
             return date >= startOfWeek && s.type === 'focus';
         });
 
         const totalMinutes = thisWeekSessions.reduce((acc, s) => acc + s.duration, 0) / 60;
-        setWeeklyHours(Math.round(totalMinutes / 60 * 10) / 10);
+        return Math.round((totalMinutes / 60) * 10) / 10;
     }, [sessions]);
 
     const progress = Math.min((weeklyHours / goalHours) * 100, 100);
 
     return (
-        <div>
-            <div className="flex justify-between mb-2 text-sm">
-                <span style={{ color: 'var(--text-light)' }}>{weeklyHours} hrs completed</span>
-                <span style={{ color: 'var(--text-muted)' }}>{Math.round(progress)}%</span>
+        <div className="space-y-2 pt-1">
+            <div className="flex justify-between items-center text-xs">
+                <span className="font-medium text-stone-700">{weeklyHours}h completed</span>
+                <span className="font-mono text-stone-400 tabular-nums">{Math.round(progress)}% of {goalHours}h</span>
             </div>
-            <div className="w-full h-3 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--primary-lighter)' }}>
+            <div className="w-full h-2.5 rounded-full overflow-hidden bg-stone-100">
                 <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${progress}%` }}
-                    transition={{ duration: 1, ease: 'easeOut' }}
-                    className="h-full rounded-full"
-                    style={{ backgroundColor: 'var(--primary)' }}
+                    transition={{ duration: 0.8, ease: 'easeOut' }}
+                    className="h-full rounded-full bg-[#FF6363]"
                 />
             </div>
-            <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
-                {weeklyHours >= goalHours ? '🎉 Goal reached! Amazing work!' : 'Keep going, you can do it! 💪'}
+            <p className="text-[11px] text-stone-400">
+                {weeklyHours >= goalHours ? 'Weekly goal achieved!' : `${(goalHours - weeklyHours).toFixed(1)}h remaining to reach your weekly focus target`}
             </p>
         </div>
     );

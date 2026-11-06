@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Preset } from '@/store/presetStore';
 
@@ -8,32 +8,21 @@ interface PresetModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSave: (preset: Omit<Preset, 'id'>) => void;
-    preset?: Preset | null; // If provided, we're editing
+    preset?: Preset | null;
 }
 
-export function PresetModal({ isOpen, onClose, onSave, preset }: PresetModalProps) {
-    const [name, setName] = useState('');
-    const [focusMinutes, setFocusMinutes] = useState(25);
-    const [shortBreakMinutes, setShortBreakMinutes] = useState(5);
-    const [longBreakMinutes, setLongBreakMinutes] = useState(15);
-    const [pomodorosBeforeLongBreak, setPomodorosBeforeLongBreak] = useState(4);
+interface PresetModalFormProps {
+    onClose: () => void;
+    onSave: (preset: Omit<Preset, 'id'>) => void;
+    preset?: Preset | null;
+}
 
-    useEffect(() => {
-        if (preset) {
-            setName(preset.name);
-            setFocusMinutes(Math.floor(preset.focusDuration / 60));
-            setShortBreakMinutes(Math.floor(preset.shortBreakDuration / 60));
-            setLongBreakMinutes(Math.floor(preset.longBreakDuration / 60));
-            setPomodorosBeforeLongBreak(preset.pomodorosBeforeLongBreak);
-        } else {
-            // Reset to defaults for new preset
-            setName('');
-            setFocusMinutes(25);
-            setShortBreakMinutes(5);
-            setLongBreakMinutes(15);
-            setPomodorosBeforeLongBreak(4);
-        }
-    }, [preset, isOpen]);
+function PresetModalForm({ onClose, onSave, preset }: PresetModalFormProps) {
+    const [name, setName] = useState(preset ? preset.name : '');
+    const [focusMinutes, setFocusMinutes] = useState(preset ? Math.floor(preset.focusDuration / 60) : 25);
+    const [shortBreakMinutes, setShortBreakMinutes] = useState(preset ? Math.floor(preset.shortBreakDuration / 60) : 5);
+    const [longBreakMinutes, setLongBreakMinutes] = useState(preset ? Math.floor(preset.longBreakDuration / 60) : 15);
+    const [pomodorosBeforeLongBreak, setPomodorosBeforeLongBreak] = useState(preset ? preset.pomodorosBeforeLongBreak : 4);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -49,6 +38,131 @@ export function PresetModal({ isOpen, onClose, onSave, preset }: PresetModalProp
         onClose();
     };
 
+    return (
+        <form onSubmit={handleSubmit}>
+            {/* Name */}
+            <div className="mb-4">
+                <label
+                    className="block text-sm font-medium mb-2"
+                    style={{ color: 'var(--text-light)' }}
+                >
+                    Preset Name
+                </label>
+                <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="e.g., Deep Work, Quick Task"
+                    className="w-full px-4 py-2 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#FF6363]"
+                    style={{
+                        backgroundColor: 'var(--background)',
+                        color: 'var(--text-dark)',
+                    }}
+                    required
+                />
+            </div>
+
+            {/* Focus Duration */}
+            <div className="mb-4">
+                <label
+                    className="block text-sm font-medium mb-2"
+                    style={{ color: 'var(--text-light)' }}
+                >
+                    Focus Duration: {focusMinutes} minutes
+                </label>
+                <input
+                    type="range"
+                    min={1}
+                    max={90}
+                    step={1}
+                    value={focusMinutes}
+                    onChange={(e) => setFocusMinutes(parseInt(e.target.value))}
+                    className="w-full"
+                    style={{ accentColor: 'var(--primary)' }}
+                />
+            </div>
+
+            {/* Short Break */}
+            <div className="mb-4">
+                <label
+                    className="block text-sm font-medium mb-2"
+                    style={{ color: 'var(--text-light)' }}
+                >
+                    Short Break: {shortBreakMinutes} minutes
+                </label>
+                <input
+                    type="range"
+                    min={1}
+                    max={30}
+                    step={1}
+                    value={shortBreakMinutes}
+                    onChange={(e) => setShortBreakMinutes(parseInt(e.target.value))}
+                    className="w-full"
+                    style={{ accentColor: 'var(--primary-light)' }}
+                />
+            </div>
+
+            {/* Long Break */}
+            <div className="mb-4">
+                <label
+                    className="block text-sm font-medium mb-2"
+                    style={{ color: 'var(--text-light)' }}
+                >
+                    Long Break: {longBreakMinutes} minutes
+                </label>
+                <input
+                    type="range"
+                    min={5}
+                    max={60}
+                    step={5}
+                    value={longBreakMinutes}
+                    onChange={(e) => setLongBreakMinutes(parseInt(e.target.value))}
+                    className="w-full"
+                    style={{ accentColor: 'var(--success)' }}
+                />
+            </div>
+
+            {/* Pomodoros before long break */}
+            <div className="mb-6">
+                <label
+                    className="block text-sm font-medium mb-2"
+                    style={{ color: 'var(--text-light)' }}
+                >
+                    Pomodoros before long break: {pomodorosBeforeLongBreak}
+                </label>
+                <input
+                    type="range"
+                    min={2}
+                    max={8}
+                    step={1}
+                    value={pomodorosBeforeLongBreak}
+                    onChange={(e) => setPomodorosBeforeLongBreak(parseInt(e.target.value))}
+                    className="w-full"
+                    style={{ accentColor: 'var(--primary)' }}
+                />
+            </div>
+
+            {/* Buttons */}
+            <div className="flex gap-3">
+                <button
+                    type="button"
+                    onClick={onClose}
+                    className="btn btn-secondary flex-1"
+                >
+                    Cancel
+                </button>
+                <button
+                    type="submit"
+                    className="btn btn-primary flex-1"
+                >
+                    {preset ? 'Save Changes' : 'Create Preset'}
+                </button>
+            </div>
+        </form>
+    );
+}
+
+export function PresetModal({ isOpen, onClose, onSave, preset }: PresetModalProps) {
     return (
         <AnimatePresence>
             {isOpen && (
@@ -80,127 +194,12 @@ export function PresetModal({ isOpen, onClose, onSave, preset }: PresetModalProp
                                 {preset ? 'Edit Preset' : 'Create Preset'}
                             </h2>
 
-                            <form onSubmit={handleSubmit}>
-                                {/* Name */}
-                                <div className="mb-4">
-                                    <label
-                                        className="block text-sm font-medium mb-2"
-                                        style={{ color: 'var(--text-light)' }}
-                                    >
-                                        Preset Name
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={name}
-                                        onChange={(e) => setName(e.target.value.slice(0, 20))}
-                                        placeholder="My Custom Preset"
-                                        className="w-full px-4 py-2 rounded-lg border-2 outline-none transition-colors"
-                                        style={{
-                                            borderColor: 'var(--primary-lighter)',
-                                            backgroundColor: 'white',
-                                        }}
-                                        maxLength={20}
-                                        required
-                                    />
-                                </div>
-
-                                {/* Focus Duration */}
-                                <div className="mb-4">
-                                    <label
-                                        className="block text-sm font-medium mb-2"
-                                        style={{ color: 'var(--text-light)' }}
-                                    >
-                                        Focus Duration: {focusMinutes} minutes
-                                    </label>
-                                    <input
-                                        type="range"
-                                        min={5}
-                                        max={120}
-                                        step={5}
-                                        value={focusMinutes}
-                                        onChange={(e) => setFocusMinutes(parseInt(e.target.value))}
-                                        className="w-full"
-                                        style={{ accentColor: 'var(--primary)' }}
-                                    />
-                                </div>
-
-                                {/* Short Break */}
-                                <div className="mb-4">
-                                    <label
-                                        className="block text-sm font-medium mb-2"
-                                        style={{ color: 'var(--text-light)' }}
-                                    >
-                                        Short Break: {shortBreakMinutes} minutes
-                                    </label>
-                                    <input
-                                        type="range"
-                                        min={1}
-                                        max={30}
-                                        step={1}
-                                        value={shortBreakMinutes}
-                                        onChange={(e) => setShortBreakMinutes(parseInt(e.target.value))}
-                                        className="w-full"
-                                        style={{ accentColor: 'var(--success)' }}
-                                    />
-                                </div>
-
-                                {/* Long Break */}
-                                <div className="mb-4">
-                                    <label
-                                        className="block text-sm font-medium mb-2"
-                                        style={{ color: 'var(--text-light)' }}
-                                    >
-                                        Long Break: {longBreakMinutes} minutes
-                                    </label>
-                                    <input
-                                        type="range"
-                                        min={5}
-                                        max={60}
-                                        step={5}
-                                        value={longBreakMinutes}
-                                        onChange={(e) => setLongBreakMinutes(parseInt(e.target.value))}
-                                        className="w-full"
-                                        style={{ accentColor: 'var(--success)' }}
-                                    />
-                                </div>
-
-                                {/* Pomodoros before long break */}
-                                <div className="mb-6">
-                                    <label
-                                        className="block text-sm font-medium mb-2"
-                                        style={{ color: 'var(--text-light)' }}
-                                    >
-                                        Pomodoros before long break: {pomodorosBeforeLongBreak}
-                                    </label>
-                                    <input
-                                        type="range"
-                                        min={2}
-                                        max={8}
-                                        step={1}
-                                        value={pomodorosBeforeLongBreak}
-                                        onChange={(e) => setPomodorosBeforeLongBreak(parseInt(e.target.value))}
-                                        className="w-full"
-                                        style={{ accentColor: 'var(--primary)' }}
-                                    />
-                                </div>
-
-                                {/* Buttons */}
-                                <div className="flex gap-3">
-                                    <button
-                                        type="button"
-                                        onClick={onClose}
-                                        className="btn btn-secondary flex-1"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        className="btn btn-primary flex-1"
-                                    >
-                                        {preset ? 'Save Changes' : 'Create Preset'}
-                                    </button>
-                                </div>
-                            </form>
+                            <PresetModalForm
+                                key={preset ? preset.id : 'new'}
+                                onClose={onClose}
+                                onSave={onSave}
+                                preset={preset}
+                            />
                         </div>
                     </motion.div>
                 </>

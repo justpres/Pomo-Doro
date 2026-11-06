@@ -46,70 +46,75 @@ export function PresetCard({ preset, onEdit, onDelete }: PresetCardProps) {
         return `${mins}m`;
     };
 
+    const focusMins = Math.floor(preset.focusDuration / 60);
+    const breakMins = Math.floor(preset.shortBreakDuration / 60);
+    const totalCycle = preset.focusDuration + preset.shortBreakDuration;
+    const focusRatio = totalCycle > 0 ? (preset.focusDuration / totalCycle) * 100 : 80;
+    const breakRatio = 100 - focusRatio;
+
     return (
         <>
             <motion.div
-                whileHover={{ scale: 1.02, y: -4 }}
+                whileHover={{ y: -3, scale: 1.01 }}
                 whileTap={{ scale: 0.98 }}
-                className="card cursor-pointer relative overflow-hidden"
-                style={{
-                    borderLeft: isActive ? '4px solid var(--primary)' : '4px solid transparent',
-                    backgroundColor: isActive ? 'rgba(255, 107, 107, 0.05)' : 'var(--background-card)',
-                }}
                 onClick={handleApply}
+                className={`card p-4 sm:p-5 cursor-pointer relative overflow-hidden transition-all bg-white border ${
+                    isActive
+                        ? 'border-[#FF6363] shadow-xs ring-1 ring-[#FF6363]/20 bg-gradient-to-b from-[#FF6363]/5 to-white'
+                        : 'border-stone-200/80 hover:border-stone-300 shadow-xs'
+                }`}
             >
-                {/* Active indicator */}
-                {isActive && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="absolute top-2 right-2 text-xs font-medium px-2 py-1 rounded-full"
-                        style={{ backgroundColor: 'var(--primary)', color: 'white' }}
-                    >
-                        Active
-                    </motion.div>
-                )}
-
-                {/* Preset name */}
-                <h3
-                    className="text-lg font-semibold mb-3"
-                    style={{ color: 'var(--text-dark)' }}
-                >
-                    {preset.name}
-                </h3>
-
-                {/* Durations */}
-                <div className="flex gap-4 text-sm" style={{ color: 'var(--text-light)' }}>
+                {/* Header */}
+                <div className="flex items-start justify-between gap-2 mb-3">
                     <div>
-                        <span className="font-medium" style={{ color: 'var(--primary)' }}>
-                            {formatDuration(preset.focusDuration)}
-                        </span>
-                        <span className="ml-1">focus</span>
+                        <h3 className="font-semibold text-base text-stone-900">
+                            {preset.name}
+                        </h3>
+                        <p className="text-[11px] text-stone-500 mt-0.5">
+                            Long break every {preset.pomodorosBeforeLongBreak} sessions ({formatDuration(preset.longBreakDuration)})
+                        </p>
                     </div>
-                    <div>
-                        <span className="font-medium" style={{ color: 'var(--success)' }}>
-                            {formatDuration(preset.shortBreakDuration)}
+
+                    {isActive ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#FF6363] text-white shadow-xs">
+                            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                            Active
                         </span>
-                        <span className="ml-1">break</span>
+                    ) : (
+                        <span className="text-[11px] font-medium text-stone-400 group-hover:text-stone-600">
+                            Use Cadence →
+                        </span>
+                    )}
+                </div>
+
+                {/* Proportional Cadence Ratio Bar */}
+                <div className="space-y-1.5 my-3.5">
+                    <div className="flex items-center justify-between text-xs font-mono">
+                        <span className="text-[#FF6363] font-medium">{focusMins}m Focus</span>
+                        <span className="text-emerald-700 font-medium">{breakMins}m Rest</span>
+                    </div>
+
+                    <div className="h-2 w-full bg-stone-100 rounded-full overflow-hidden flex" title={`${Math.round(focusRatio)}% Focus / ${Math.round(breakRatio)}% Rest`}>
+                        <div
+                            style={{ width: `${focusRatio}%` }}
+                            className="h-full bg-[#FF6363] transition-all rounded-l-full"
+                        />
+                        <div
+                            style={{ width: `${breakRatio}%` }}
+                            className="h-full bg-emerald-500 transition-all rounded-r-full"
+                        />
                     </div>
                 </div>
 
-                {/* Long break info */}
-                <div className="mt-2 text-xs" style={{ color: 'var(--text-muted)' }}>
-                    Long break ({formatDuration(preset.longBreakDuration)}) every{' '}
-                    {preset.pomodorosBeforeLongBreak} pomodoros
-                </div>
-
-                {/* Edit/Delete buttons for custom presets */}
+                {/* Action buttons for custom presets */}
                 {!preset.isDefault && (
-                    <div className="flex gap-2 mt-4">
+                    <div className="flex items-center gap-2 pt-2 border-t border-stone-100 mt-3">
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
                                 onEdit?.(preset);
                             }}
-                            className="text-xs px-3 py-1 rounded-lg"
-                            style={{ backgroundColor: 'var(--primary-lighter)', color: 'var(--text-dark)' }}
+                            className="text-xs px-2.5 py-1 rounded-lg text-stone-600 hover:text-stone-900 bg-stone-100 hover:bg-stone-200/80 transition-colors"
                         >
                             Edit
                         </button>
@@ -118,8 +123,7 @@ export function PresetCard({ preset, onEdit, onDelete }: PresetCardProps) {
                                 e.stopPropagation();
                                 onDelete?.(preset.id);
                             }}
-                            className="text-xs px-3 py-1 rounded-lg"
-                            style={{ backgroundColor: '#FEE2E2', color: '#DC2626' }}
+                            className="text-xs px-2.5 py-1 rounded-lg text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 transition-colors ml-auto"
                         >
                             Delete
                         </button>

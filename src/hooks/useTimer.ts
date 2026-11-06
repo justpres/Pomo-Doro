@@ -2,98 +2,88 @@
 
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { useTimerStore } from '@/store/timerStore';
-import { useSessionStore } from '@/store/sessionStore';
-import { usePresetStore } from '@/store/presetStore';
-import { useTaskStore } from '@/store/taskStore';
 import { useAudio } from './useAudio';
 import { useNotification } from './useNotification';
 import { MODE_LABELS, formatTime } from '@/lib/constants';
 
 export function useTimer() {
-    const { isRunning, tick, timeRemaining, mode, settings, completeSession } = useTimerStore();
-    const { logSession } = useSessionStore();
-    const { activePresetId } = usePresetStore();
-    const { activeTaskId, incrementTaskPomodoro } = useTaskStore();
+    const isRunning = useTimerStore((s) => s.isRunning);
+    const sync = useTimerStore((s) => s.sync);
+    const timeRemaining = useTimerStore((s) => s.timeRemaining);
+    const mode = useTimerStore((s) => s.mode);
+    const sessionDuration = useTimerStore((s) => s.sessionDuration);
+    const lastCompletion = useTimerStore((s) => s.lastCompletion);
+
     const { playNotification, stopNotification } = useAudio();
     const { sendNotification } = useNotification();
-    const intervalRef = useRef<NodeJS.Timeout | null>(null);
-    const prevTimeRef = useRef(timeRemaining);
-    const sessionStartRef = useRef<number | null>(null);
-    const [pipWindow, setPipWindow] = useState<Window | null>(null);
 
-    // Track session start and stop alarm when timer starts
+    const [pipWindow, setPipWindow] = useState<Window | null>(null);
+    const pipElementsRef = useRef<{
+        container: HTMLElement | null;
+        mode: HTMLElement | null;
+        time: HTMLElement | null;
+        bar: HTMLElement | null;
+    }>({ container: null, mode: null, time: null, bar: null });
+
+    const prevCompletionIdRef = useRef<string | null>(null);
+
+    // Stop alarm when user starts timer
     useEffect(() => {
-        if (isRunning && sessionStartRef.current === null) {
-            sessionStartRef.current = Date.now();
-            stopNotification(); // Stop alarm when user starts timer
-        } else if (!isRunning) {
-            sessionStartRef.current = null;
+        if (isRunning) {
+            stopNotification();
         }
     }, [isRunning, stopNotification]);
 
-    // Handle timer completion
-    const handleComplete = useCallback(() => {
-        playNotification();
-
-        const nextMode = mode === 'focus'
-            ? 'Time for a break!'
-            : 'Break is over. Ready to focus?';
-        sendNotification(
-            `${MODE_LABELS[mode]} Complete!`,
-            nextMode
-        );
-
-        const duration = mode === 'focus'
-            ? settings.focusDuration
-            : mode === 'shortBreak'
-                ? settings.shortBreakDuration
-                : settings.longBreakDuration;
-
-        logSession({
-            type: mode,
-            duration,
-            presetId: activePresetId || undefined,
-        });
-
-        if (mode === 'focus' && activeTaskId) {
-            incrementTaskPomodoro(activeTaskId);
-        }
-
-        completeSession();
-    }, [playNotification, sendNotification, mode, settings, logSession, activePresetId, activeTaskId, incrementTaskPomodoro, completeSession]);
-
+    // React to session completions
     useEffect(() => {
-        if (isRunning) {
-            intervalRef.current = setInterval(() => {
-                tick();
-            }, 1000);
-        } else {
-            if (intervalRef.current) {
-                clearInterval(intervalRef.current);
-                intervalRef.current = null;
+        if (!lastCompletion) return;
+        if (lastCompletion.id !== prevCompletionIdRef.current) {
+            prevCompletionIdRef.current = lastCompletion.id;
+            if (!lastCompletion.silent) {
+                playNotification();
+                const nextModeMsg = lastCompletion.mode === 'focus'
+                    ? 'Time for a break!'
+                    : 'Break is over. Ready to focus?';
+                sendNotification(
+                    `${MODE_LABELS[lastCompletion.mode]} Complete!`,
+                    nextModeMsg
+                );
             }
         }
+    }, [lastCompletion, playNotification, sendNotification]);
+
+    // Interval sync while running
+    useEffect(() => {
+        if (!isRunning) return;
+
+        sync();
+        const intervalId = setInterval(() => {
+            sync();
+        }, 250);
+
+        return () => clearInterval(intervalId);
+    }, [isRunning, sync]);
+
+    // Sync on tab visibility change or focus
+    useEffect(() => {
+        const handleSync = () => {
+            sync();
+        };
+
+        window.addEventListener('focus', handleSync);
+        document.addEventListener('visibilitychange', handleSync);
 
         return () => {
-            if (intervalRef.current) {
-                clearInterval(intervalRef.current);
-            }
+            window.removeEventListener('focus', handleSync);
+            document.removeEventListener('visibilitychange', handleSync);
         };
-    }, [isRunning, tick]);
-
-    // Check for completion
-    useEffect(() => {
-        if (prevTimeRef.current > 0 && timeRemaining === 0) {
-            handleComplete();
-        }
-        prevTimeRef.current = timeRemaining;
-    }, [timeRemaining, handleComplete]);
+    }, [sync]);
 
     // Update document title with timer
     useEffect(() => {
         const timeStr = formatTime(timeRemaining);
-        const modeStr = mode === 'focus' ? '🍅' : '☕';
-        document.title = `${timeStr} ${modeStr} Pomodoro`;
+        const modeStr = mode === 'focus' ? 'Focus' : 'Break';
+        document.title = `${timeStr} [${modeStr}] Pomodoro`;
     }, [timeRemaining, mode]);
 
     // Update PiP window content if open
@@ -104,66 +94,93 @@ export function useTimer() {
             const accentColor = mode === 'focus' ? '#FF6B6B' : '#51CF66';
             const modeLabel = MODE_LABELS[mode];
 
-            pipWindow.document.body.innerHTML = `
-        <div style="
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          height: 100vh;
-          background: ${bgColor};
-          font-family: system-ui, -apple-system, sans-serif;
-          margin: 0;
-          padding: 0;
-        ">
-          <div style="font-size: 14px; color: #666; margin-bottom: 4px;">${modeLabel}</div>
-          <div style="font-size: 48px; font-weight: 700; color: #333; font-family: monospace;">${timeStr}</div>
-          <div style="
-            width: 60%;
-            height: 6px;
-            background: #E5E7EB;
-            border-radius: 3px;
-            margin-top: 12px;
-            overflow: hidden;
-          ">
-            <div style="
-              width: ${((1 - timeRemaining / (mode === 'focus' ? settings.focusDuration : mode === 'shortBreak' ? settings.shortBreakDuration : settings.longBreakDuration)) * 100)}%;
-              height: 100%;
-              background: ${accentColor};
-              border-radius: 3px;
-              transition: width 0.3s ease;
-            "></div>
-          </div>
-        </div>
-      `;
+            const els = pipElementsRef.current;
+            if (els.container && els.mode && els.time && els.bar) {
+                els.container.style.backgroundColor = bgColor;
+                els.mode.textContent = modeLabel;
+                els.time.textContent = timeStr;
+                const ratio = sessionDuration > 0 ? (1 - timeRemaining / sessionDuration) * 100 : 0;
+                els.bar.style.width = `${Math.min(100, Math.max(0, ratio))}%`;
+                els.bar.style.backgroundColor = accentColor;
+            }
         }
-    }, [timeRemaining, mode, pipWindow, settings]);
+    }, [timeRemaining, mode, pipWindow, sessionDuration]);
 
-    // Open Picture-in-Picture when tab is hidden
+    // Open Picture-in-Picture
     const openPiP = useCallback(async () => {
-        // Check if Document PiP is supported
-        if ('documentPictureInPicture' in window) {
+        if (typeof window !== 'undefined' && window.documentPictureInPicture) {
             try {
-                // @ts-ignore - Document PiP API is experimental
                 const pip = await window.documentPictureInPicture.requestWindow({
                     width: 300,
                     height: 200,
                 });
+
+                const doc = pip.document;
+                doc.body.style.margin = '0';
+                doc.body.style.padding = '0';
+
+                const container = doc.createElement('div');
+                container.style.cssText = `
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    height: 100vh;
+                    font-family: system-ui, -apple-system, sans-serif;
+                    background: ${mode === 'focus' ? '#FFF5F5' : '#F0FFF4'};
+                `;
+
+                const modeEl = doc.createElement('div');
+                modeEl.style.cssText = 'font-size: 14px; color: #666; margin-bottom: 4px;';
+                modeEl.textContent = MODE_LABELS[mode];
+
+                const timeEl = doc.createElement('div');
+                timeEl.style.cssText = 'font-size: 48px; font-weight: 700; color: #333; font-family: monospace;';
+                timeEl.textContent = formatTime(timeRemaining);
+
+                const barTrack = doc.createElement('div');
+                barTrack.style.cssText = 'width: 60%; height: 6px; background: #E5E7EB; border-radius: 3px; margin-top: 12px; overflow: hidden;';
+
+                const bar = doc.createElement('div');
+                const initialRatio = sessionDuration > 0 ? (1 - timeRemaining / sessionDuration) * 100 : 0;
+                bar.style.cssText = `
+                    width: ${Math.min(100, Math.max(0, initialRatio))}%;
+                    height: 100%;
+                    background: ${mode === 'focus' ? '#FF6B6B' : '#51CF66'};
+                    border-radius: 3px;
+                    transition: width 0.3s ease;
+                `;
+                barTrack.appendChild(bar);
+
+                container.appendChild(modeEl);
+                container.appendChild(timeEl);
+                container.appendChild(barTrack);
+                doc.body.appendChild(container);
+
+                pipElementsRef.current = {
+                    container,
+                    mode: modeEl,
+                    time: timeEl,
+                    bar,
+                };
+
                 setPipWindow(pip);
 
                 pip.addEventListener('pagehide', () => {
+                    pipElementsRef.current = { container: null, mode: null, time: null, bar: null };
                     setPipWindow(null);
                 });
             } catch (error) {
                 console.log('PiP not available:', error);
             }
         }
-    }, []);
+    }, [mode, timeRemaining, sessionDuration]);
 
-    // Close PiP when returning to tab
+    // Close PiP
     const closePiP = useCallback(() => {
         if (pipWindow && !pipWindow.closed) {
             pipWindow.close();
+            pipElementsRef.current = { container: null, mode: null, time: null, bar: null };
             setPipWindow(null);
         }
     }, [pipWindow]);

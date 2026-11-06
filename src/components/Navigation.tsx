@@ -1,231 +1,156 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { SoundscapeDroplet } from './MusicPlayer';
 
-// Custom SVG icons in tomato pink style
-const TimerIcon = ({ active }: { active: boolean }) => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={active ? '#FFFFFF' : '#FF6B6B'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+interface IconProps {
+    active: boolean;
+}
+
+const TimerIcon = ({ active }: IconProps) => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={active ? 'text-white' : 'text-stone-500'}>
         <circle cx="12" cy="12" r="10" />
         <polyline points="12 6 12 12 16 14" />
     </svg>
 );
 
-const TasksIcon = ({ active }: { active: boolean }) => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={active ? '#FFFFFF' : '#FF6B6B'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+const TasksIcon = ({ active }: IconProps) => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={active ? 'text-white' : 'text-stone-500'}>
         <path d="M9 11l3 3L22 4" />
         <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
     </svg>
 );
 
-const PresetsIcon = ({ active }: { active: boolean }) => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={active ? '#FFFFFF' : '#FF6B6B'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="7" height="7" rx="1" />
-        <rect x="14" y="3" width="7" height="7" rx="1" />
-        <rect x="3" y="14" width="7" height="7" rx="1" />
-        <rect x="14" y="14" width="7" height="7" rx="1" />
+const PresetsIcon = ({ active }: IconProps) => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={active ? 'text-white' : 'text-stone-500'}>
+        <rect x="3" y="3" width="7" height="7" rx="1.5" />
+        <rect x="14" y="3" width="7" height="7" rx="1.5" />
+        <rect x="3" y="14" width="7" height="7" rx="1.5" />
+        <rect x="14" y="14" width="7" height="7" rx="1.5" />
     </svg>
 );
 
-const StatsIcon = ({ active }: { active: boolean }) => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={active ? '#FFFFFF' : '#FF6B6B'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+const StatsIcon = ({ active }: IconProps) => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={active ? 'text-white' : 'text-stone-500'}>
         <line x1="18" y1="20" x2="18" y2="10" />
         <line x1="12" y1="20" x2="12" y2="4" />
         <line x1="6" y1="20" x2="6" y2="14" />
     </svg>
 );
 
-const SettingsIcon = ({ active }: { active: boolean }) => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={active ? '#FFFFFF' : '#FF6B6B'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+const SettingsIcon = ({ active }: IconProps) => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={active ? 'text-white' : 'text-stone-500'}>
         <circle cx="12" cy="12" r="3" />
         <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
     </svg>
 );
 
-// Plus icon for main button
-const PlusIcon = ({ isOpen }: { isOpen: boolean }) => (
-    <motion.svg
-        width="28"
-        height="28"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="white"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        animate={{ rotate: isOpen ? 45 : 0 }}
-        transition={{ duration: 0.3, ease: 'easeInOut' }}
-    >
-        <line x1="12" y1="5" x2="12" y2="19" />
-        <line x1="5" y1="12" x2="19" y2="12" />
-    </motion.svg>
-);
-
 const navItems = [
-    { href: '/settings', label: 'Settings', Icon: SettingsIcon },
-    { href: '/stats', label: 'Stats', Icon: StatsIcon },
-    { href: '/presets', label: 'Presets', Icon: PresetsIcon },
-    { href: '/tasks', label: 'Tasks', Icon: TasksIcon },
     { href: '/', label: 'Timer', Icon: TimerIcon },
+    { href: '/tasks', label: 'Tasks', Icon: TasksIcon },
+    { href: '/presets', label: 'Presets', Icon: PresetsIcon },
+    { href: '/stats', label: 'Stats', Icon: StatsIcon },
+    { href: '/settings', label: 'Settings', Icon: SettingsIcon },
 ];
 
 export function Navigation() {
     const pathname = usePathname();
-    const [isOpen, setIsOpen] = useState(false);
-
-    const handleNavClick = () => {
-        setIsOpen(false);
-    };
 
     return (
         <>
-            {/* Desktop Navigation - top bar */}
-            <nav
-                className="hidden md:flex fixed top-0 left-0 right-0 z-50 items-center justify-center gap-6 py-4"
-                style={{ backgroundColor: 'rgba(255, 245, 245, 0.9)', backdropFilter: 'blur(10px)' }}
-            >
-                {[...navItems].reverse().map((item) => {
-                    const isActive = pathname === item.href;
-                    return (
-                        <Link key={item.href} href={item.href}>
-                            <motion.span
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                className="relative px-4 py-2 text-sm font-medium transition-colors"
-                                style={{
-                                    color: isActive ? 'var(--primary)' : 'var(--text-light)',
-                                }}
+            {/* Desktop Navigation: Single Continuous Vector Silhouette */}
+            <header className="fixed top-5 left-1/2 -translate-x-1/2 z-50 hidden md:flex flex-col items-center w-[496px] pointer-events-none">
+                {/* Unified SVG Background: Single continuous path for nav + liquid meniscus droplet */}
+                <div className="absolute inset-0 -z-10 pointer-events-none">
+                    <svg
+                        width="496"
+                        height="88"
+                        viewBox="0 0 496 88"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="w-full h-full filter drop-shadow-[0_4px_16px_rgba(28,25,23,0.07)]"
+                    >
+                        <path
+                            d="M 24 0 L 472 0 A 24 24 0 0 1 472 48 L 388 48 A 16 16 0 0 0 372 64 L 372 72 A 16 16 0 0 1 356 88 L 140 88 A 16 16 0 0 1 124 72 L 124 64 A 16 16 0 0 0 108 48 L 24 48 A 24 24 0 0 1 24 0 Z"
+                            fill="#FFFFFF"
+                            stroke="rgba(231, 229, 228, 0.95)"
+                            strokeWidth="1"
+                        />
+                    </svg>
+                </div>
+
+                {/* Top Row: Navigation Links */}
+                <nav className="h-[48px] w-full flex items-center justify-around px-3 pointer-events-auto" aria-label="Main Navigation">
+                    {navItems.map((item) => {
+                        const isActive = pathname === item.href;
+                        const Icon = item.Icon;
+                        return (
+                            <Link
+                                key={item.href}
+                                href={item.href}
+                                aria-current={isActive ? 'page' : undefined}
+                                className={`relative px-4 py-2 text-xs font-medium rounded-full transition-all duration-150 flex items-center gap-2 select-none ${
+                                    isActive ? 'text-white' : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100/60'
+                                }`}
                             >
-                                {item.label}
                                 {isActive && (
                                     <motion.div
-                                        layoutId="nav-indicator"
-                                        className="absolute bottom-0 left-0 right-0 h-0.5"
-                                        style={{ backgroundColor: 'var(--primary)' }}
+                                        layoutId="activeNavDesktop"
+                                        className="absolute inset-0 bg-[#FF6363] rounded-full shadow-xs"
+                                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                                     />
                                 )}
-                            </motion.span>
-                        </Link>
-                    );
-                })}
+                                <span className="relative z-10 flex items-center gap-2 font-medium">
+                                    <Icon active={isActive} />
+                                    <span>{item.label}</span>
+                                </span>
+                            </Link>
+                        );
+                    })}
+                </nav>
+
+                {/* Bottom Row: Soundscape Droplet Controls */}
+                <div className="h-[40px] w-[248px] flex items-center justify-center pointer-events-auto">
+                    <SoundscapeDroplet variant="desktop" />
+                </div>
+            </header>
+
+            {/* Mobile Navigation: Floating Bottom Pill with 44px+ touch targets */}
+            <nav className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 md:hidden w-[92%] max-w-sm" aria-label="Mobile Navigation">
+                <div className="flex items-center justify-around px-2 py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-stone-200/80 shadow-[0_4px_20px_rgba(28,25,23,0.08)]">
+                    {navItems.map((item) => {
+                        const isActive = pathname === item.href;
+                        const Icon = item.Icon;
+                        return (
+                            <Link
+                                key={item.href}
+                                href={item.href}
+                                aria-current={isActive ? 'page' : undefined}
+                                className={`relative flex flex-col items-center justify-center min-w-[48px] min-h-[46px] px-2 py-1 rounded-full transition-all duration-150 ${
+                                    isActive ? 'text-white' : 'text-stone-600 active:bg-stone-100/60'
+                                }`}
+                                aria-label={item.label}
+                            >
+                                {isActive && (
+                                    <motion.div
+                                        layoutId="activeNavMobile"
+                                        className="absolute inset-0 bg-[#FF6363] rounded-full shadow-xs"
+                                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                                    />
+                                )}
+                                <span className="relative z-10 flex flex-col items-center">
+                                    <Icon active={isActive} />
+                                    <span className={`text-[10px] mt-0.5 font-medium ${isActive ? 'text-white font-semibold' : 'text-stone-600'}`}>
+                                        {item.label}
+                                    </span>
+                                </span>
+                            </Link>
+                        );
+                    })}
+                </div>
             </nav>
-
-            {/* Mobile Navigation - Teardrop Design */}
-            <div className="md:hidden">
-                {/* Backdrop Overlay */}
-                <AnimatePresence>
-                    {isOpen && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                            onClick={() => setIsOpen(false)}
-                            className="fixed inset-0 z-40"
-                            style={{
-                                backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                                backdropFilter: 'blur(4px)',
-                            }}
-                        />
-                    )}
-                </AnimatePresence>
-
-                {/* Teardrop Navigation Items */}
-                <AnimatePresence>
-                    {isOpen && (
-                        <div className="fixed z-45" style={{ bottom: '92px', left: '20px' }}>
-                            {navItems.map((item, index) => {
-                                const isActive = pathname === item.href;
-                                const Icon = item.Icon;
-                                return (
-                                    <Link
-                                        key={item.href}
-                                        href={item.href}
-                                        onClick={handleNavClick}
-                                        style={{
-                                            WebkitTapHighlightColor: 'transparent',
-                                            outline: 'none'
-                                        }}
-                                    >
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 20, scale: 0.8 }}
-                                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                                            exit={{ opacity: 0, y: 20, scale: 0.8 }}
-                                            transition={{
-                                                delay: index * 0.05,
-                                                duration: 0.2,
-                                                type: 'spring',
-                                                stiffness: 300,
-                                                damping: 20
-                                            }}
-                                            whileHover={{ scale: 1.1, x: 5 }}
-                                            whileTap={{ scale: 0.95 }}
-                                            className="flex items-center gap-3 mb-3"
-                                        >
-                                            {/* Teardrop bubble */}
-                                            <div
-                                                className="flex items-center justify-center relative"
-                                                style={{
-                                                    width: '56px',
-                                                    height: '56px',
-                                                    borderRadius: '50% 50% 50% 0%',
-                                                    transform: 'rotate(-45deg)',
-                                                    backgroundColor: isActive ? '#FF6B6B' : '#FFF',
-                                                    boxShadow: isActive
-                                                        ? '0 6px 20px rgba(255, 107, 107, 0.5)'
-                                                        : '0 4px 12px rgba(0, 0, 0, 0.15)',
-                                                    border: isActive ? 'none' : '2px solid #FF6B6B',
-                                                }}
-                                            >
-                                                <div style={{ transform: 'rotate(45deg)' }}>
-                                                    <Icon active={isActive} />
-                                                </div>
-                                            </div>
-
-                                            {/* Label */}
-                                            <motion.span
-                                                initial={{ opacity: 0, x: -10 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                transition={{ delay: index * 0.05 + 0.1 }}
-                                                className="text-sm font-medium px-3 py-1.5 rounded-full whitespace-nowrap"
-                                                style={{
-                                                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                                                    color: isActive ? '#FF6B6B' : '#6B6B6B',
-                                                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-                                                }}
-                                            >
-                                                {item.label}
-                                            </motion.span>
-                                        </motion.div>
-                                    </Link>
-                                );
-                            })}
-                        </div>
-                    )}
-                </AnimatePresence>
-
-                {/* Main Floating Button - Circular */}
-                <motion.button
-                    onClick={() => setIsOpen(!isOpen)}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    className="fixed z-50 flex items-center justify-center"
-                    style={{
-                        bottom: '20px',
-                        left: '20px',
-                        width: '64px',
-                        height: '64px',
-                        borderRadius: '50%',
-                        backgroundColor: '#FF6B6B',
-                        boxShadow: '0 6px 20px rgba(255, 107, 107, 0.5)',
-                    }}
-                    aria-label="Toggle menu"
-                >
-                    <PlusIcon isOpen={isOpen} />
-                </motion.button>
-            </div>
         </>
     );
 }

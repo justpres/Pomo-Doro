@@ -1,15 +1,37 @@
 'use client';
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useSyncExternalStore } from 'react';
+
+const listeners = new Set<() => void>();
+
+function notifyChange() {
+    listeners.forEach((listener) => listener());
+}
+
+function subscribe(listener: () => void) {
+    listeners.add(listener);
+    return () => {
+        listeners.delete(listener);
+    };
+}
+
+function getPermissionSnapshot(): NotificationPermission {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+        return Notification.permission;
+    }
+    return 'default';
+}
+
+function getServerSnapshot(): NotificationPermission {
+    return 'default';
+}
 
 export function useNotification() {
-    const permissionRef = useRef<NotificationPermission>('default');
-
-    useEffect(() => {
-        if (typeof window !== 'undefined' && 'Notification' in window) {
-            permissionRef.current = Notification.permission;
-        }
-    }, []);
+    const permission = useSyncExternalStore(
+        subscribe,
+        getPermissionSnapshot,
+        getServerSnapshot
+    );
 
     const requestPermission = useCallback(async () => {
         if (typeof window === 'undefined' || !('Notification' in window)) {
@@ -17,14 +39,14 @@ export function useNotification() {
         }
 
         if (Notification.permission === 'granted') {
-            permissionRef.current = 'granted';
+            notifyChange();
             return true;
         }
 
         if (Notification.permission !== 'denied') {
-            const permission = await Notification.requestPermission();
-            permissionRef.current = permission;
-            return permission === 'granted';
+            const result = await Notification.requestPermission();
+            notifyChange();
+            return result === 'granted';
         }
 
         return false;
@@ -50,7 +72,7 @@ export function useNotification() {
     }, []);
 
     const isSupported = typeof window !== 'undefined' && 'Notification' in window;
-    const isGranted = permissionRef.current === 'granted';
+    const isGranted = permission === 'granted';
 
-    return { requestPermission, sendNotification, isSupported, isGranted };
+    return { permission, requestPermission, sendNotification, isSupported, isGranted };
 }

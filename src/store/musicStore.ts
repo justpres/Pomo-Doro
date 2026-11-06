@@ -61,7 +61,7 @@ export const useMusicStore = create<MusicState>()(
             isPlaying: false,
             volume: 50,
             savedVolume: null,
-            currentStationId: 'lofi-girl', // Default
+            currentStationId: STATIONS[0].id, // Default: 'lofi-radio'
             isMuted: false,
             isPlayerOpen: false,
 
@@ -69,7 +69,10 @@ export const useMusicStore = create<MusicState>()(
 
             setVolume: (volume) => set({ volume }),
 
-            setStation: (stationId) => set({ currentStationId: stationId, isPlaying: true }), // Auto-play on station change
+            setStation: (stationId) => {
+                const valid = STATIONS.some(s => s.id === stationId);
+                set({ currentStationId: valid ? stationId : STATIONS[0].id, isPlaying: true });
+            },
 
             toggleMute: () => set({ isMuted: !get().isMuted }),
 
@@ -78,14 +81,14 @@ export const useMusicStore = create<MusicState>()(
             nextStation: () => {
                 const { currentStationId } = get();
                 const currentIndex = STATIONS.findIndex(s => s.id === currentStationId);
-                const nextIndex = (currentIndex + 1) % STATIONS.length;
+                const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % STATIONS.length;
                 set({ currentStationId: STATIONS[nextIndex].id, isPlaying: true });
             },
 
             previousStation: () => {
                 const { currentStationId } = get();
                 const currentIndex = STATIONS.findIndex(s => s.id === currentStationId);
-                const prevIndex = (currentIndex - 1 + STATIONS.length) % STATIONS.length;
+                const prevIndex = currentIndex === -1 ? 0 : (currentIndex - 1 + STATIONS.length) % STATIONS.length;
                 set({ currentStationId: STATIONS[prevIndex].id, isPlaying: true });
             },
 
@@ -117,6 +120,22 @@ export const useMusicStore = create<MusicState>()(
                 currentStationId: state.currentStationId,
                 isMuted: state.isMuted,
             }),
+            migrate: (persistedState: unknown) => {
+                if (persistedState && typeof persistedState === 'object') {
+                    const state = { ...(persistedState as Record<string, unknown>) };
+                    if (!STATIONS.some(s => s.id === state.currentStationId)) {
+                        state.currentStationId = STATIONS[0].id;
+                    }
+                    return state as unknown as MusicState;
+                }
+                return persistedState as unknown as MusicState;
+            },
+            onRehydrateStorage: () => (state) => {
+                if (!state) return;
+                if (!STATIONS.some(s => s.id === state.currentStationId)) {
+                    state.currentStationId = STATIONS[0].id;
+                }
+            },
         }
     )
 );

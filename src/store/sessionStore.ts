@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { computeStreak } from '@/lib/stats';
 
 export interface Session {
     id: string;
@@ -10,11 +11,18 @@ export interface Session {
     focusQuality?: number; // 1-5 rating
 }
 
+export type LogSessionInput = Omit<Session, 'id' | 'completedAt'> & {
+    completedAt?: string | number | Date;
+};
+
 interface SessionState {
     sessions: Session[];
+    pendingRatingId: string | null;
 
     // Actions
-    logSession: (session: Omit<Session, 'id' | 'completedAt'>) => void;
+    logSession: (session: LogSessionInput) => string;
+    setPendingRating: (id: string | null) => void;
+    clearPendingRating: () => void;
     getSessionsByDate: (date: Date) => Session[];
     getSessionsInRange: (startDate: Date, endDate: Date) => Session[];
     getTodayStats: () => { pomodoros: number; focusMinutes: number };
@@ -38,17 +46,33 @@ export const useSessionStore = create<SessionState>()(
     persist(
         (set, get) => ({
             sessions: [],
+            pendingRatingId: null,
 
             logSession: (session) => {
+                const id = typeof crypto !== 'undefined' && crypto.randomUUID
+                    ? crypto.randomUUID()
+                    : `session-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+
+                const completedAt = session.completedAt
+                    ? new Date(session.completedAt).toISOString()
+                    : new Date().toISOString();
+
                 const newSession: Session = {
                     ...session,
-                    id: `session-${Date.now()}`,
-                    completedAt: new Date().toISOString(),
+                    id,
+                    completedAt,
                 };
+
                 set((state) => ({
                     sessions: [...state.sessions, newSession],
                 }));
+
+                return id;
             },
+
+            setPendingRating: (id) => set({ pendingRatingId: id }),
+
+            clearPendingRating: () => set({ pendingRatingId: null }),
 
             getSessionsByDate: (date) => {
                 return get().sessions.filter((session) =>
@@ -77,49 +101,19 @@ export const useSessionStore = create<SessionState>()(
             },
 
             getStreak: () => {
-                const sessions = get().sessions;
-                if (sessions.length === 0) return 0;
-
-                // Sort sessions by date descending
-                const sortedDates = [...new Set(
-                    sessions
-                        .filter((s) => s.type === 'focus')
-                        .map((s) => new Date(s.completedAt).toDateString())
-                )].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-
-                if (sortedDates.length === 0) return 0;
-
-                let streak = 0;
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-
-                for (let i = 0; i < sortedDates.length; i++) {
-                    const sessionDate = new Date(sortedDates[i]);
-                    sessionDate.setHours(0, 0, 0, 0);
-
-                    const expectedDate = new Date(today);
-                    expectedDate.setDate(today.getDate() - i);
-
-                    if (sessionDate.getTime() === expectedDate.getTime()) {
-                        streak++;
-                    } else if (i === 0 && sessionDate.getTime() === expectedDate.getTime() - 86400000) {
-                        // Allow for yesterday if no session today yet
-                        continue;
-                    } else {
-                        break;
-                    }
-                }
-
-                return streak;
+                const focusDates = get().sessions
+                    .filter((s) => s.type === 'focus')
+                    .map((s) => new Date(s.completedAt));
+                return computeStreak(focusDates, new Date());
             },
 
             getAverageQuality: () => {
-                const ratedSessions = get().sessions.filter(s => s.focusQuality !== undefined);
+                const ratedSessions = get().sessions.filter((s) => s.focusQuality !== undefined);
                 if (ratedSessions.length === 0) return { value: 0, count: 0 };
                 const total = ratedSessions.reduce((acc, s) => acc + (s.focusQuality || 0), 0);
                 return {
                     value: Math.round((total / ratedSessions.length) * 10) / 10,
-                    count: ratedSessions.length
+                    count: ratedSessions.length,
                 };
             },
 
@@ -138,11 +132,11 @@ export const useSessionStore = create<SessionState>()(
             },
 
             getMostProductiveHour: () => {
-                const sessions = get().sessions.filter(s => s.type === 'focus');
+                const sessions = get().sessions.filter((s) => s.type === 'focus');
                 if (sessions.length === 0) return null;
 
                 const hourCounts = new Map<number, number>();
-                sessions.forEach(session => {
+                sessions.forEach((session) => {
                     const hour = new Date(session.completedAt).getHours();
                     hourCounts.set(hour, (hourCounts.get(hour) || 0) + 1);
                 });
@@ -164,6 +158,9 @@ export const useSessionStore = create<SessionState>()(
         }),
         {
             name: 'pomodoro-sessions-storage',
+            partialize: (state) => ({
+                sessions: state.sessions,
+            }),
         }
     )
 );

@@ -6,39 +6,37 @@ import { ReactNode } from 'react';
 interface StatsCardProps {
     title: string;
     value: string | number;
-    subtitle?: string; // Secondary info like "Based on 12 sessions"
+    subtitle?: string;
     icon?: ReactNode;
     color?: string;
-    className?: string; // Optional custom class
+    className?: string;
 }
 
-export function StatsCard({ title, value, subtitle, color = 'var(--primary)', className = '' }: StatsCardProps) {
+export function StatsCard({ title, value, subtitle, icon, color, className = '' }: StatsCardProps) {
     return (
         <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`card flex flex-col items-center justify-center py-6 ${className}`}
+            className={`card p-4 sm:p-5 flex flex-col justify-between transition-all bg-white border border-stone-200/80 shadow-xs hover:border-stone-300 ${className}`}
         >
-            <p
-                className="text-sm font-medium mb-2"
-                style={{ color: 'var(--text-light)' }}
-            >
-                {title}
-            </p>
-            <p
-                className="text-4xl font-bold"
-                style={{ color }}
-            >
-                {value}
-            </p>
-            {subtitle && (
+            <div className="flex items-center justify-between text-xs text-stone-500 font-medium mb-2">
+                <span>{title}</span>
+                {icon && <span className="text-base">{icon}</span>}
+            </div>
+
+            <div>
                 <p
-                    className="text-xs mt-1"
-                    style={{ color: 'var(--text-muted)' }}
+                    className="font-mono text-2xl sm:text-3xl font-bold tracking-tight text-stone-900 tabular-nums"
+                    style={color ? { color } : undefined}
                 >
-                    {subtitle}
+                    {value}
                 </p>
-            )}
+                {subtitle && (
+                    <p className="text-[11px] text-stone-400 mt-1 truncate">
+                        {subtitle}
+                    </p>
+                )}
+            </div>
         </motion.div>
     );
 }

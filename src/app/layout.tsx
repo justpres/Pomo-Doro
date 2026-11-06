@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Navigation } from "@/components/Navigation";
-
 import { MusicPlayer } from "@/components/MusicPlayer";
 import { TimerProvider } from "@/components/TimerProvider";
 
@@ -34,9 +33,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-  themeColor: "#FF6B6B",
+  themeColor: "#FF6363",
 };
 
 export default function RootLayout({
@@ -47,11 +44,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} antialiased`}
+        className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} antialiased min-h-screen text-[var(--text-dark)] bg-[var(--background)] transition-colors duration-500`}
       >
         <Navigation />
-        {/* Desktop: top padding only. Mobile: no extra padding needed with floating button */}
-        <main className="pt-14 md:pt-14">
+        <main className="pt-20 pb-28 md:pt-32 md:pb-16 min-h-screen">
           {children}
         </main>
         <MusicPlayer />

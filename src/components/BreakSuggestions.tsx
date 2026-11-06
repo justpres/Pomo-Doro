@@ -1,24 +1,23 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useEffect } from 'react';
 import { TimerMode } from '@/lib/constants';
+import { useTimerStore } from '@/store/timerStore';
 
 const shortBreakActivities = [
-    { text: 'Stretch your arms and neck', icon: '🙆' },
-    { text: 'Look away from the screen', icon: '👀' },
-    { text: 'Take a few deep breaths', icon: '🌬️' },
-    { text: 'Drink some water', icon: '💧' },
-    { text: 'Stand up and move around', icon: '🚶' },
+    'Stretch your arms and neck',
+    'Look away from the screen into the distance',
+    'Take a few deep breaths and hydrate',
+    'Drink a glass of water',
+    'Stand up and take a quick posture check',
 ];
 
 const longBreakActivities = [
-    { text: 'Take a short walk outside', icon: '🚶‍♂️' },
-    { text: 'Have a healthy snack', icon: '🍎' },
-    { text: 'Do some light stretching', icon: '🧘' },
-    { text: 'Chat with someone', icon: '💬' },
-    { text: 'Rest your eyes away from screens', icon: '😌' },
-    { text: 'Listen to some music', icon: '🎵' },
+    'Take a short walk outside for fresh air',
+    'Enjoy a healthy snack or warm beverage',
+    'Do some light stretching exercises',
+    'Step away completely from all digital screens',
+    'Listen to calming ambient music',
 ];
 
 interface BreakSuggestionsProps {
@@ -26,33 +25,29 @@ interface BreakSuggestionsProps {
 }
 
 export function BreakSuggestions({ mode }: BreakSuggestionsProps) {
-    const [suggestion, setSuggestion] = useState<{ text: string; icon: string } | null>(null);
+    const pomodoroCount = useTimerStore((s) => s.pomodoroCount);
 
-    useEffect(() => {
-        if (mode === 'shortBreak' || mode === 'longBreak') {
-            const activities = mode === 'shortBreak' ? shortBreakActivities : longBreakActivities;
-            const randomIndex = Math.floor(Math.random() * activities.length);
-            setSuggestion(activities[randomIndex]);
-        } else {
-            setSuggestion(null);
-        }
-    }, [mode]);
-
-    if (!suggestion || mode === 'focus') return null;
+    const isBreak = mode !== 'focus';
+    const activities = mode === 'shortBreak' ? shortBreakActivities : longBreakActivities;
+    const suggestionText = activities[pomodoroCount % activities.length];
 
     return (
-        <AnimatePresence>
-            <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="text-center mt-2"
-            >
-                <p className="text-sm" style={{ color: 'var(--text-light)' }}>
-                    <span className="mr-1">{suggestion.icon}</span>
-                    {suggestion.text}
-                </p>
-            </motion.div>
-        </AnimatePresence>
+        <div className="h-6 flex items-center justify-center mt-1 md:mt-2">
+            <AnimatePresence mode="wait">
+                {isBreak && (
+                    <motion.p
+                        key={`${mode}-${pomodoroCount}`}
+                        initial={{ opacity: 0, y: 4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        transition={{ duration: 0.2 }}
+                        className="text-xs text-stone-500 font-normal tracking-wide text-center"
+                    >
+                        <span className="text-stone-400">Activity: </span>
+                        <span className="text-stone-700 font-medium">{suggestionText}</span>
+                    </motion.p>
+                )}
+            </AnimatePresence>
+        </div>
     );
 }
