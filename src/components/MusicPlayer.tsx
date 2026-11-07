@@ -93,6 +93,7 @@ export function SoundscapeDroplet({ variant = 'desktop' }: { variant?: 'desktop'
             <button
                 onClick={(e) => {
                     e.stopPropagation();
+                    proceduralAudio.resume();
                     previousStation();
                 }}
                 className="w-7 h-7 rounded-full bg-stone-950 border border-stone-800 flex items-center justify-center relative overflow-hidden flex-shrink-0 shadow-xs cursor-pointer focus:outline-hidden hover:border-stone-700 transition-colors"
@@ -176,6 +177,7 @@ export function SoundscapeDroplet({ variant = 'desktop' }: { variant?: 'desktop'
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
+                                    proceduralAudio.resume();
                                     togglePlay();
                                 }}
                                 className={`w-7 h-7 rounded-full flex items-center justify-center transition-all active:scale-90 flex-shrink-0 cursor-pointer ${
@@ -211,6 +213,7 @@ export function SoundscapeDroplet({ variant = 'desktop' }: { variant?: 'desktop'
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
+                                    proceduralAudio.resume();
                                     nextStation();
                                 }}
                                 className="w-6 h-6 rounded-full flex items-center justify-center text-stone-400 hover:text-stone-800 hover:bg-stone-100 transition-colors active:scale-90 flex-shrink-0 cursor-pointer"
@@ -273,9 +276,10 @@ export function MusicPlayer() {
                 if (audio) {
                     audio.pause();
                 }
+                const effectiveVol = isMuted ? 0 : volume / 100;
                 proceduralAudio.play(
                     currentStationId as ProceduralSoundId,
-                    isMuted ? 0 : volume / 100
+                    effectiveVol
                 );
             } else {
                 // Web radio stream: stop procedural audio, play HTML5 stream
@@ -301,12 +305,12 @@ export function MusicPlayer() {
         return () => {
             isCancelled = true;
         };
-    }, [isPlaying, currentStationId, isMuted, volume]);
+    }, [isPlaying, currentStationId]);
 
     // Stop procedural audio on unmount
     useEffect(() => {
         return () => {
-            proceduralAudio.stop();
+            proceduralAudio.stop(true);
         };
     }, []);
 
